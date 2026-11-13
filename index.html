@@ -608,6 +608,54 @@
   .circle-note{background:#ebf8ff;border-color:#bee3f8;border-left-color:#3182ce;color:#1a365d}
   .circle-state{background:#f0fff4;color:#2f855a}.circle-state.wait{background:#fefcbf;color:#975a16}.circle-state.bad{background:#fff5f5;color:#c53030}
   @media(max-width:760px){.sidebar{background:linear-gradient(180deg,#004b8b,#07365f)}}
+
+  /* ========== Voice Populate (conversation mode) ========== */
+  .voice-mode{background:linear-gradient(135deg,#f0fdfa,#ecfdf5);border:2px solid var(--brand);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
+  .voice-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+  .voice-rec{width:44px;height:44px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;font-size:1.1rem;box-shadow:0 0 0 4px var(--red-bg)}
+  .voice-rec.recording{animation:pulse-rec 1.2s infinite}
+  @keyframes pulse-rec{0%,100%{box-shadow:0 0 0 4px var(--red-bg)}50%{box-shadow:0 0 0 8px var(--red-bg)}}
+  .voice-meta{font-size:.82rem;color:var(--muted)}.voice-meta strong{color:var(--text);display:block}
+  .voice-transcript{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem;min-height:100px;max-height:200px;overflow-y:auto;font-size:.85rem;line-height:1.6;margin-bottom:.8rem}
+  .voice-transcript .v-speaker{font-weight:700;color:var(--brand-2)}
+  .voice-transcript .v-extract{background:#fef08a;padding:0 3px;border-radius:2px}
+  .voice-extracts{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem}
+  .voice-extract-item{background:#fff;border:1px solid var(--line);border-left:3px solid var(--green);border-radius:8px;padding:.55rem .7rem;font-size:.82rem}
+  .voice-extract-item.uncertain{border-left-color:var(--amber);background:#fffbeb}
+  .voice-extract-item .ve-field{font-size:.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .voice-extract-item .ve-value{font-weight:600;margin-top:.15rem}
+  .voice-extract-item .ve-flag{display:inline-block;margin-top:.2rem;font-size:.68rem;padding:.05rem .4rem;border-radius:999px;background:var(--amber-bg);color:var(--amber);font-weight:600}
+  .voice-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+  .voice-confirm-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:.5rem 1rem;font-weight:700;cursor:pointer}
+  .voice-confirm-btn:hover{background:#047857}
+  .voice-discard-btn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:.5rem 1rem;cursor:pointer}
+
+  /* ========== Consent & Access ========== */
+  .consent-banner{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-radius:10px;margin-bottom:1rem;font-size:.85rem}
+  .consent-banner.granted{background:var(--green-bg);border:1px solid #86efac;color:#065f46}
+  .consent-banner.pending{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e}
+  .consent-banner.denied{background:var(--red-bg);border:1px solid #fecaca;color:#991b1b}
+  .consent-icon{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;flex-shrink:0}
+  .consent-banner.granted .consent-icon{background:#fff}
+  .consent-banner.pending .consent-icon{background:#fff}
+  .consent-banner.denied .consent-icon{background:#fff}
+  .access-list{display:flex;flex-direction:column;gap:.5rem}
+  .access-item{display:grid;grid-template-columns:40px 1fr auto auto;gap:.7rem;align-items:center;padding:.7rem .8rem;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .access-item .a-avatar{width:36px;height:36px;border-radius:50%;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+  .access-item .a-name{font-weight:600;font-size:.88rem}
+  .access-item .a-role{color:var(--muted);font-size:.75rem}
+  .access-item .a-perm{font-size:.72rem;padding:.15rem .5rem;border-radius:999px;background:var(--soft);font-weight:600}
+  .access-item .a-toggle{width:44px;height:24px;border-radius:999px;background:var(--green);position:relative;cursor:pointer}
+  .access-item .a-toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:3px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .access-item .a-toggle.off{background:var(--line)}
+  .access-item .a-toggle.off::after{right:23px}
+  .consent-patient-view{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #93c5fd;border-radius:14px;padding:1.2rem;margin-top:1rem}
+  .consent-patient-view h3{color:#1e40af;margin-bottom:.5rem;font-size:1rem}
+  .consent-patient-view p{font-size:.82rem;color:#1e40af;margin-bottom:.6rem;line-height:1.6}
+  .patient-perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+  .patient-perm-item{background:#fff;border:1px solid #93c5fd;border-radius:8px;padding:.5rem .7rem;font-size:.78rem;display:flex;align-items:center;gap:.5rem}
+  .patient-perm-item input{width:16px;height:16px}
+
 </style>
 </head>
 <body>
@@ -1044,7 +1092,7 @@
         <aside class="card circle-roster"><div class="card-title"><div><h3>Patients</h3><small>Panel members</small></div><span class="tag">5</span></div><div id="circlePatientList"></div><div class="circle-roster-note">Synthetic demo data · patient access follows your role.</div></aside>
         <div class="circle-main"><div id="circlePatientBanner" class="card circle-patient-banner"></div>
           <div class="circle-tabs" role="tablist" aria-label="Care Circle features">
-            <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="extract">AI Extract</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Handoffs</button><button class="circle-tab" data-circle-tab="transition">Transition</button>
+            <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Handoffs</button><button class="circle-tab" data-circle-tab="transition">Transition</button>
           </div>
           <div id="circleFeaturePanel"></div>
         </div>
@@ -3421,6 +3469,149 @@ function bindEvents(){
 /* ===================== INIT ===================== */
 bindEvents();
 loginWith("e10482");
+
+/* ========== VOICE POPULATE MODE ========== */
+const voiceDemo = {
+  transcript: [
+    { speaker: "Maria (CM)", text: "So Margaret, let's walk through who's involved in your care. You see Dr. Chen for primary care, right?" },
+    { speaker: "Margaret", text: "Yes, and I see Dr. Patel at Southlake for my chemo, every other week. The palliative team called last week about the hospice — that's not started yet.", },
+    { speaker: "Maria (CM)", text: "Got it. And the home support — you still have PSW from Ontario Health at Home?" },
+    { speaker: "Margaret", text: "Yes, they come twice a week for bathing. But I'm not sure who to call if my symptoms get worse." },
+    { speaker: "Maria (CM)", text: "That's exactly what I want to sort out. Karen (Navigator) helped with the CHATS transportation last month, and Rebecca does your social work. Let me make sure I have everyone." },
+  ],
+  extracts: [
+    { field: "Provider", value: "Dr. Chen — PCP, Georgina FHP", confidence: "confirmed" },
+    { field: "Provider", value: "Dr. Patel — Oncologist, Southlake, chemo 2x/month", confidence: "confirmed" },
+    { field: "Service", value: "Palliative Care Team — hospice designated, not yet active", confidence: "uncertain" },
+    { field: "Service", value: "Ontario Health at Home — PSW 2x/week bathing", confidence: "confirmed" },
+    { field: "Navigator", value: "CHATS transportation (via Karen)", confidence: "confirmed" },
+    { field: "Provider", value: "Rebecca Blencowe — Social Worker, IPCT", confidence: "confirmed" },
+    { field: "Patient concern", value: "Unclear who to call when symptoms worsen", confidence: "confirmed" },
+  ]
+};
+
+function renderVoicePanel(patient) {
+  const p = patients.find(x => x.id === patient) || patients[0];
+  return `
+    <div class="voice-mode">
+      <div class="voice-header">
+        <div class="voice-rec" id="voiceRecBtn" title="Toggle recording">⏺</div>
+        <div class="voice-meta">
+          <strong>Conversation Mode</strong>
+          CM: Maria Okafor · Patient: ${p.name} · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+        </div>
+        <button class="ghost-button compact-button" style="margin-left:auto" onclick="document.getElementById('voiceRecBtn').classList.toggle('recording')">▶ Start / ⏸ Pause</button>
+      </div>
+      <div class="voice-transcript">
+        ${voiceDemo.transcript.map(t => `<p><span class="v-speaker">${t.speaker}:</span> ${t.text.split(/(Dr\.|the|I|you|and|that|it|my|who|what)/g).map(w => t.text.includes(w) && ['Dr. Chen','Dr. Patel','hospice','PSW','Ontario Health','CHATS','Rebecca','Karen'].some(k => w.includes(k)) ? `<span class="v-extract">${w}</span>` : w).join('')}</p>`).join('')}
+      </div>
+      <h4 style="margin:0 0 .5rem;font-size:.85rem;color:var(--brand-2)">Live extraction — auto-populating care circle</h4>
+      <div class="voice-extracts">
+        ${voiceDemo.extracts.map(e => `
+          <div class="voice-extract-item ${e.confidence === 'uncertain' ? 'uncertain' : ''}">
+            <div class="ve-field">${e.field}</div>
+            <div class="ve-value">${e.value}</div>
+            ${e.confidence === 'uncertain' ? '<span class="ve-flag">⚠ Needs CM confirmation</span>' : ''}
+          </div>
+        `).join('')}
+      </div>
+      <div class="voice-actions">
+        <button class="voice-confirm-btn" onclick="showToast('✓ 5 confirmed + 1 flagged item added to ${p.name}\'s care circle')">Confirm &amp; add to circle</button>
+        <button class="voice-discard-btn" onclick="showToast('Extraction discarded. No changes made.')">Discard</button>
+        <small class="muted" style="align-self:center;margin-left:auto">Patient consent: <strong style="color:var(--green)">granted</strong> · Recording auto-stops on conversation end</small>
+      </div>
+    </div>
+  `;
+}
+
+/* ========== CONSENT & ACCESS PANEL ========== */
+function renderConsentPanel(patient) {
+  const p = patients.find(x => x.id === patient) || patients[0];
+  const pTeam = p.team || [];
+  return `
+    <div class="card" style="margin-bottom:1rem">
+      <h3>Consent status · ${p.name}</h3>
+      <small>PHIPA-compliant · All access changes logged</small>
+      <div style="display:grid;gap:.7rem;margin-top:.8rem">
+        <div class="consent-banner granted">
+          <div class="consent-icon">✓</div>
+          <div><strong>Conversation recording</strong><br><small>Granted by ${p.name} on Jun 1 · Auto-stops on end · Retained 30 days per policy</small></div>
+        </div>
+        <div class="consent-banner granted">
+          <div class="consent-icon">✓</div>
+          <div><strong>Care circle visibility</strong><br><small>${pTeam.length} providers and 1 family member have read access · Patient can revoke at any time</small></div>
+        </div>
+        <div class="consent-banner pending">
+          <div class="consent-icon">…</div>
+          <div><strong>QR one-pager sharing</strong><br><small>Pending — patient will review before the card is shared with Southlake ED</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem">
+      <h3>Access control · Who can see this patient's circle</h3>
+      <div class="access-list" style="margin-top:.7rem">
+        ${pTeam.map((t,i) => `
+          <div class="access-item">
+            <div class="a-avatar">${t[0].slice(0,2).toUpperCase()}</div>
+            <div>
+              <div class="a-name">${t[1]}</div>
+              <div class="a-role">${t[0]}${t[2] ? ' · ' + t[2] : ''}</div>
+            </div>
+            <span class="a-perm">${i < 2 ? 'Full access' : 'Read-only'}</span>
+            <div class="a-toggle ${i >= 3 ? 'off' : ''}" onclick="this.classList.toggle('off');showToast('Access updated for ${t[1]}')"></div>
+          </div>
+        `).join('')}
+        <div class="access-item" style="border-left:3px solid var(--amber);background:#fffbeb">
+          <div class="a-avatar" style="background:var(--amber-bg);color:var(--amber)">PT</div>
+          <div>
+            <div class="a-name">${p.name} (patient)</div>
+            <div class="a-role">Self-management · can view &amp; revoke</div>
+          </div>
+          <span class="a-perm" style="background:var(--amber-bg);color:var(--amber)">Full control</span>
+          <div class="a-toggle" title="Patient has full control"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="consent-patient-view">
+      <h3>📱 Patient self-management view</h3>
+      <p>"I control who can see my care circle. If something changes, I can revoke access or add a new provider. My Care Manager helps me manage this, but I'm in charge."</p>
+      <div class="patient-perm-grid">
+        <label class="patient-perm-item"><input type="checkbox" checked> PCP (Dr. Chen) can see my care circle</label>
+        <label class="patient-perm-item"><input type="checkbox" checked> Southlake ED can see my QR one-pager</label>
+        <label class="patient-perm-item"><input type="checkbox" checked> Navigator (Karen) can see my active tasks</label>
+        <label class="patient-perm-item"><input type="checkbox"> Family (Helen) can see my care plan details</label>
+        <label class="patient-perm-item"><input type="checkbox" checked> My Care Manager can record our conversations</label>
+        <label class="patient-perm-item"><input type="checkbox"> Community providers can see my goals of care</label>
+      </div>
+      <button class="primary-button compact-button" style="margin-top:.8rem" onclick="showToast('Consent preferences saved. Access updated per your choices.')">Save my preferences</button>
+    </div>
+  `;
+}
+
+// Override the circle tab renderer to include new tabs
+const _origRenderCircle = window.renderCircleFeature;
+if (_origRenderCircle) {
+  // Already exists, augment it
+}
+// Patch: add voice and consent to the circle tab click handler
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.circle-tab');
+  if (!btn) return;
+  const tab = btn.dataset.circleTab;
+  if (tab === 'voice') {
+    const panel = document.getElementById('circleFeaturePanel');
+    const currentPatient = document.querySelector('.circle-patient-row.selected')?.dataset.pid || 'john';
+    panel.innerHTML = renderVoicePanel(currentPatient);
+  }
+  if (tab === 'consent') {
+    const panel = document.getElementById('circleFeaturePanel');
+    const currentPatient = document.querySelector('.circle-patient-row.selected')?.dataset.pid || 'john';
+    panel.innerHTML = renderConsentPanel(currentPatient);
+  }
+}, true);
+
 </script>
 </body>
 </html>
