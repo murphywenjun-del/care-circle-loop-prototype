@@ -703,6 +703,29 @@
   .qr-audit-item .qai-icon{width:24px;height:24px;border-radius:50%;background:var(--green-bg);color:var(--green);display:grid;place-items:center;font-size:.7rem;flex-shrink:0}
   .qr-audit-item .qai-time{margin-left:auto;color:var(--muted);font-size:.7rem}
 
+
+  /* ========== Patient Control View ========== */
+  .patient-ctrl-view{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #93c5fd;border-radius:14px;padding:1.2rem}
+  .patient-ctrl-header{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem}
+  .patient-ctrl-header .pc-avatar{width:44px;height:44px;border-radius:50%;background:#3b82f6;color:#fff;display:grid;place-items:center;font-weight:700;font-size:1rem}
+  .patient-ctrl-header .pc-name{font-weight:700;font-size:1rem;color:#1e40af}
+  .patient-ctrl-header .pc-sub{font-size:.75rem;color:#1e40af;opacity:.7}
+  .pc-section{background:#fff;border-radius:10px;padding:.8rem 1rem;margin-bottom:.7rem;border:1px solid #bfdbfe}
+  .pc-section h4{margin:0 0 .4rem;font-size:.82rem;color:#1e40af;font-weight:700}
+  .pc-section p{margin:0 0 .4rem;font-size:.8rem;color:#1e3a8a;line-height:1.5}
+  .pc-controls{display:grid;gap:.4rem}
+  .pc-control-item{display:flex;align-items:center;gap:.5rem;font-size:.78rem;padding:.3rem .5rem;background:#f8fafc;border-radius:6px}
+  .pc-control-item input[type="checkbox"]{width:16px;height:16px;accent-color:#3b82f6}
+  .pc-control-item label{flex:1}
+  .pc-control-item .pc-lock{color:var(--muted);font-size:.68rem}
+  .pc-revoke-btn{background:var(--red-bg);border:1px solid #fecaca;color:var(--red);border-radius:6px;padding:.3rem .6rem;font-size:.72rem;cursor:pointer;font-weight:600}
+  .pc-revoke-btn:hover{background:var(--red)}
+  .pc-revoke-btn:hover{color:#fff}
+  .pc-consent-summary{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:.6rem .8rem;margin-top:.6rem;font-size:.78rem;color:#065f46}
+  .pc-consent-summary strong{display:block;margin-bottom:.2rem}
+  .pc-notification{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:.75rem;color:#92400e;margin-top:.5rem}
+  .pc-notification .pcn-icon{font-size:1rem}
+
 </style>
 </head>
 <body>
@@ -1139,7 +1162,7 @@
         <aside class="card circle-roster"><div class="card-title"><div><h3>Patients</h3><small>Panel members</small></div><span class="tag">5</span></div><div id="circlePatientList"></div><div class="circle-roster-note">Synthetic demo data · patient access follows your role.</div></aside>
         <div class="circle-main"><div id="circlePatientBanner" class="card circle-patient-banner"></div>
           <div class="circle-tabs" role="tablist" aria-label="Care Circle features">
-            <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Handoffs</button><button class="circle-tab" data-circle-tab="transition">Transition</button>
+            <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Panel</button><button class="circle-tab" data-circle-tab="patient-control">Patient Control</button>
           </div>
           <div id="circleFeaturePanel"></div>
         </div>
@@ -3799,6 +3822,95 @@ document.addEventListener('click', function(e) {
       }
     }, 100);
   }
+}, true);
+
+
+/* ========== PATIENT CONTROL TAB ========== */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-circle-tab="patient-control"]');
+  if (!btn) return;
+  const panel = document.getElementById('circleFeaturePanel');
+  const selectedRow = document.querySelector('.circle-patient-row.selected');
+  const pid = selectedRow?.dataset.pid || 'jarras';
+  const p = patients.find(x => x.id === pid) || patients[0];
+  panel.innerHTML = `
+    <div class="patient-ctrl-view">
+      <div class="patient-ctrl-header">
+        <div class="pc-avatar">${p.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+        <div>
+          <div class="pc-name">${p.name}</div>
+          <div class="pc-sub">Patient self-management · "I control who sees my care circle"</div>
+        </div>
+      </div>
+
+      <div class="pc-section">
+        <h4>👁 Who can see my care circle</h4>
+        <p>Below are the providers and services in my care circle. I control who can access my information. My Care Manager (Maria Okafor) manages the list on my behalf, but I can override any choice.</p>
+        <div class="pc-controls">
+          <div class="pc-control-item">
+            <input type="checkbox" checked id="pc-1"><label for="pc-1">Dr. Chen (PCP) can see my care circle details</label>
+            <button class="pc-revoke-btn" onclick="showToast('Revoked access for Dr. Chen. Maria has been notified.')">Revoke</button>
+          </div>
+          <div class="pc-control-item">
+            <input type="checkbox" checked id="pc-2"><label for="pc-2">Dr. Patel (Oncologist) can see my care circle details</label>
+            <button class="pc-revoke-btn" onclick="showToast('Revoked access for Dr. Patel. Maria has been notified.')">Revoke</button>
+          </div>
+          <div class="pc-control-item">
+            <input type="checkbox" checked id="pc-3"><label for="pc-3">Karen (Navigator) can see my active tasks &amp; gaps</label>
+            <button class="pc-revoke-btn" onclick="showToast('Revoked access for Karen.')">Revoke</button>
+          </div>
+          <div class="pc-control-item">
+            <input type="checkbox" id="pc-4"><label for="pc-4">Helen (family/caregiver) can see my care plan details</label>
+            <button class="pc-revoke-btn" onclick="showToast('Access updated for Helen.')">Limit</button>
+          </div>
+          <div class="pc-control-item">
+            <input type="checkbox" checked id="pc-5"><label for="pc-5">Palliative team can see my goals of care</label>
+            <span class="pc-lock">🔒 CM-managed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pc-section">
+        <h4>🎙 Conversation recording consent</h4>
+        <p>My Care Manager records our conversations so the system can help track who's involved in my care. I can stop recording at any time.</p>
+        <div class="pc-controls">
+          <div class="pc-control-item">
+            <input type="checkbox" checked id="pc-6"><label for="pc-6">I consent to Maria recording our conversations</label>
+          </div>
+          <div class="pc-control-item">
+            <input type="checkbox" checked id="pc-7"><label for="pc-7">I consent to automatic extraction of provider names from conversations</label>
+          </div>
+          <div class="pc-control-item">
+            <input type="checkbox" id="pc-8"><label for="pc-8">I consent to my QR card being shared with any provider I scan for</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="pc-section">
+        <h4>📲 My QR Card</h4>
+        <p>When I go to any doctor's office or hospital, I can show my QR code. They'll see that I have a Care Manager and can CC their notes to her.</p>
+        <div style="display:flex;gap:1rem;align-items:center;margin-top:.5rem">
+          <div style="width:70px;height:70px;background:#1e40af;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:1.5rem">▣</div>
+          <div style="font-size:.82rem;color:#1e40af">
+            <strong>Southlake Care Circle QR</strong><br>
+            Last updated: Jun 15, 2026 · 4 circle members QR-connected
+          </div>
+          <button class="primary-button compact-button" style="background:#3b82f6" onclick="showToast('QR card shared via patient portal. It\'s visible on your phone.')">Show on phone</button>
+        </div>
+      </div>
+
+      <div class="pc-consent-summary">
+        <strong>✓ Consent summary</strong>
+        Last reviewed by Margaret: Jun 15, 2026. Next auto-reminder: Sep 15, 2026.
+        All access changes are logged per PHIPA and visible to Maria (CM).
+      </div>
+
+      <div class="pc-notification">
+        <span class="pcn-icon">🔔</span>
+        <span><strong>New:</strong> Dr. Patel scanned your QR on Jun 3. She can now CC notes to your CM. No action needed.</span>
+      </div>
+    </div>
+  `;
 }, true);
 
 </script>
