@@ -656,6 +656,53 @@
   .patient-perm-item{background:#fff;border:1px solid #93c5fd;border-radius:8px;padding:.5rem .7rem;font-size:.78rem;display:flex;align-items:center;gap:.5rem}
   .patient-perm-item input{width:16px;height:16px}
 
+
+  /* ========== QR Connection Hub (Care Circle) ========== */
+  .qr-hub{background:#fff;border:2px solid var(--brand);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
+  .qr-hub-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+  .qr-code-box{width:80px;height:80px;border:2px solid var(--brand);border-radius:10px;display:grid;place-items:center;font-size:1.5rem;background:var(--brand-soft)}
+  .qr-hub-title{font-weight:700;font-size:1rem}.qr-hub-title small{font-weight:400;color:var(--muted)}
+  .qr-hub-stats{display:flex;gap:1rem;margin-bottom:1rem}
+  .qr-stat{background:var(--soft);border-radius:8px;padding:.5rem .8rem;text-align:center;min-width:80px}
+  .qr-stat strong{display:block;font-size:1.3rem;color:var(--brand-2)}
+  .qr-stat span{font-size:.68rem;color:var(--muted);font-weight:600}
+  .qr-stat.pending strong{color:var(--amber)}
+  .qr-members{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem}
+  .qr-member{display:flex;align-items:center;gap:.5rem;padding:.5rem .6rem;border:1px solid var(--line);border-radius:8px;font-size:.8rem}
+  .qr-member.connected{border-left:3px solid var(--green);background:var(--green-bg)}
+  .qr-member.pending{border-left:3px solid var(--amber);background:#fffbeb}
+  .qr-member .qrm-check{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;flex-shrink:0}
+  .qr-member.connected .qrm-check{background:var(--green);color:#fff}
+  .qr-member.pending .qrm-check{background:var(--amber);color:#fff}
+  .qr-member .qrm-name{font-weight:600}.qr-member .qrm-role{font-size:.7rem;color:var(--muted)}
+  .qr-member .qrm-share{margin-left:auto;background:var(--brand);color:#fff;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.68rem;cursor:pointer;font-weight:600}
+
+  /* Provider View (what they see on scan) */
+  .provider-view{background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px dashed var(--brand);border-radius:14px;padding:1.2rem;margin-top:1rem}
+  .provider-view-label{font-size:.7rem;font-weight:700;color:var(--brand-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem}
+  .provider-card-mock{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 4px 16px rgba(0,0,0,.08);max-width:340px}
+  .provider-card-mock h4{margin:0 0 .3rem;font-size:.95rem}
+  .provider-card-mock .pcm-row{display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem;font-size:.82rem}
+  .provider-card-mock .pcm-icon{width:28px;height:28px;border-radius:50%;background:var(--brand-soft);display:grid;place-items:center;font-size:.8rem;flex-shrink:0}
+  .provider-card-mock .pcm-consent{background:var(--green-bg);border:1px solid #86efac;border-radius:8px;padding:.6rem .8rem;font-size:.78rem;color:#065f46;margin-top:.8rem}
+  .provider-card-mock .pcm-consent strong{display:block;margin-bottom:.2rem}
+  .provider-card-mock .pcm-cc{background:var(--soft);border-radius:8px;padding:.5rem .7rem;font-size:.78rem;margin-top:.6rem}
+  .provider-card-mock .pcm-cc code{background:var(--brand-soft);padding:.1rem .3rem;border-radius:3px;font-size:.75rem}
+  .provider-card-mock .pcm-btn{width:100%;margin-top:.8rem;background:var(--brand);color:#fff;border:none;border-radius:8px;padding:.6rem;font-weight:700;cursor:pointer;font-size:.85rem}
+
+  /* QR flow diagram */
+  .qr-flow{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin:1rem 0}
+  .qr-flow-step{background:var(--brand-soft);border:1px solid var(--brand);border-radius:8px;padding:.4rem .6rem;font-size:.72rem;font-weight:600;text-align:center;min-width:90px}
+  .qr-flow-step.action{background:var(--brand);color:#fff;border-color:var(--brand-2)}
+  .qr-flow-arrow{color:var(--muted);font-size:1rem;min-width:16px;text-align:center}
+  .qr-flow-note{width:100%;font-size:.72rem;color:var(--muted);margin-top:.3rem}
+
+  /* QR audit */
+  .qr-audit{margin-top:1rem}
+  .qr-audit-item{display:flex;gap:.6rem;align-items:center;padding:.5rem .7rem;border:1px solid var(--line);border-radius:8px;margin-bottom:.4rem;font-size:.78rem}
+  .qr-audit-item .qai-icon{width:24px;height:24px;border-radius:50%;background:var(--green-bg);color:var(--green);display:grid;place-items:center;font-size:.7rem;flex-shrink:0}
+  .qr-audit-item .qai-time{margin-left:auto;color:var(--muted);font-size:.7rem}
+
 </style>
 </head>
 <body>
@@ -3609,6 +3656,148 @@ document.addEventListener('click', function(e) {
     const panel = document.getElementById('circleFeaturePanel');
     const currentPatient = document.querySelector('.circle-patient-row.selected')?.dataset.pid || 'john';
     panel.innerHTML = renderConsentPanel(currentPatient);
+  }
+}, true);
+
+
+/* ========== QR CONNECTION HUB ========== */
+function renderQrHub(patientId) {
+  const p = patients.find(x => x.id === patientId) || patients[0];
+  const team = p.team || [];
+  // QR connection status per member
+  const qrStatus = [
+    { name: team[0] ? team[0][1] : 'PCP', connected: true, time: 'Jun 1' },
+    { name: team[1] ? team[1][1] : 'Oncologist', connected: true, time: 'Jun 3' },
+    { name: 'Palliative Team', connected: true, time: 'Jun 10' },
+    { name: 'Social Worker', connected: true, time: 'Jun 12' },
+    { name: 'Hospice Designated', connected: false },
+    { name: 'Ontario Health at Home', connected: false },
+    { name: 'Navigator (CHATS)', connected: false },
+    { name: 'Caregiver (family)', connected: false },
+    { name: 'Home Support PSW', connected: false },
+  ];
+  const connectedCount = qrStatus.filter(x => x.connected).length;
+  const pendingCount = qrStatus.length - connectedCount;
+
+  return `
+    <div class="qr-hub">
+      <div class="qr-hub-header">
+        <div class="qr-code-box">
+          <span>▣</span>
+        </div>
+        <div class="qr-hub-title">
+          Care Circle QR Connection Hub
+          <small>Generated from confirmed care plan · Consent-based · PHIPA-compliant</small>
+        </div>
+      </div>
+      <div class="qr-hub-stats">
+        <div class="qr-stat"><strong>${connectedCount}</strong><span>QR Connected</span></div>
+        <div class="qr-stat pending"><strong>${pendingCount}</strong><span>Pending</span></div>
+        <div class="qr-stat"><strong>6</strong><span>Provider-aware of CM</span></div>
+        <div class="qr-stat"><strong>3</strong><span>Notes CC'd back</span></div>
+      </div>
+
+      <h4 style="font-size:.82rem;color:var(--muted);margin:0 0 .5rem">Circle members · QR status</h4>
+      <div class="qr-members">
+        ${qrStatus.map(m => `
+          <div class="qr-member ${m.connected ? 'connected' : 'pending'}">
+            <div class="qrm-check">${m.connected ? '✓' : '…'}</div>
+            <div>
+              <div class="qrm-name">${m.name}</div>
+              <div class="qrm-role">${m.connected ? 'Connected · ' + m.time : 'QR not yet shared'}</div>
+            </div>
+            ${!m.connected ? '<button class="qrm-share" onclick="showToast('QR sent to ${m.name} via patient\'s preferred channel. You'll be notified when they scan.')">Share</button>' : ''}
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- QR Flow Diagram -->
+      <div class="qr-flow">
+        <div class="qr-flow-step">Patient shows QR<br>at provider visit</div>
+        <div class="qr-flow-arrow">→</div>
+        <div class="qr-flow-step action">Provider scans</div>
+        <div class="qr-flow-arrow">→</div>
+        <div class="qr-flow-step">"I acknowledge<br>this patient has a CM"</div>
+        <div class="qr-flow-arrow">→</div>
+        <div class="qr-flow-step">Basic info shared<br>(consent-gated)</div>
+        <div class="qr-flow-arrow">→</div>
+        <div class="qr-flow-step action">Provider CC's notes<br>to CM</div>
+        <div class="qr-flow-arrow">→</div>
+        <div class="qr-flow-step">Gap closed · CM sees update</div>
+        <span class="qr-flow-note">Solves Gap #14 (patient doesn't know who to reach) + Gap #16 (specialist notes don't reach CM)</span>
+      </div>
+
+      <!-- Provider View Mockup -->
+      <div class="provider-view">
+        <div class="provider-view-label">📱 What the provider sees when they scan</div>
+        <div class="provider-card-mock">
+          <h4>${p.name}</h4>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:.6rem">Stage IV NSCLC · Heart Failure NYHA III · ACP: Comfort-focused</div>
+          <div class="pcm-row"><div class="pcm-icon">👤</div><div><strong>Care Manager:</strong> Maria Okafor<br><small>Southlake FHT · Georgina</small></div></div>
+          <div class="pcm-row"><div class="pcm-icon">📞</div><div><strong>Direct line:</strong> (905) 555-0142 · maria.okafor@southlake.example</div></div>
+          <div class="pcm-consent">
+            <strong>✓ Consent confirmed</strong>
+            Patient consents to basic care coordination info being shared with scanning providers.
+            This does NOT grant access to full medical records.
+          </div>
+          <div class="pcm-cc">
+            <strong>CC your consult notes to:</strong><br>
+            <code>m.okafor.circ@ southlake.example</code>
+            <small style="color:var(--muted);display:block;margin-top:.3rem">This closes the loop. The CM will be notified when you send.</small>
+          </div>
+          <button class="pcm-btn" onclick="showToast('Acknowledged: You are now QR-connected to ${p.name}\'s care circle. CM has been notified.')">I acknowledge · Connect me to this care circle</button>
+        </div>
+      </div>
+
+      <!-- QR Audit Log -->
+      <div class="qr-audit">
+        <h4 style="font-size:.82rem;margin:0 0 .5rem">QR scan audit log · PHIPA</h4>
+        <div class="qr-audit-item"><div class="qai-icon">✓</div> Dr. Chen (PCP) scanned QR · confirmed connection<div class="qai-time">Jun 1, 9:14 AM</div></div>
+        <div class="qr-audit-item"><div class="qai-icon">✓</div> Dr. Patel (Oncologist) scanned QR · confirmed connection<div class="qai-time">Jun 3, 2:30 PM</div></div>
+        <div class="qr-audit-item"><div class="qai-icon">✓</div> Palliative team scanned QR · CC'd consult notes<div class="qai-time">Jun 10, 11:02 AM</div></div>
+        <div class="qr-audit-item"><div class="qai-icon">✓</div> Rebecca Blencowe (SW) scanned QR · confirmed connection<div class="qai-time">Jun 12, 4:15 PM</div></div>
+      </div>
+    </div>
+  `;
+}
+
+// Hook: when the "Care Circle" main tab is active, prepend the QR Hub
+const _origTabClick = document.querySelector('[data-circle-tab="circle"]');
+if (_origTabClick) {
+  const observer = new MutationObserver(() => {
+    const panel = document.getElementById('circleFeaturePanel');
+    if (panel && !panel.querySelector('.qr-hub')) {
+      const selectedRow = panel.closest('.split-view')?.querySelector('.circle-patient-row.selected');
+      const pid = selectedRow?.dataset.pid || 'jarras';
+      const qrDiv = document.createElement('div');
+      qrDiv.id = 'qrHubInjection';
+      qrDiv.innerHTML = renderQrHub(pid);
+      // Insert at the top of the circle feature content
+      const circleContent = panel.querySelector('[class*="circle-content"]') || panel;
+      circleContent.insertBefore(qrDiv, circleContent.firstChild);
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => observer.disconnect(), 3000);
+}
+
+// Also hook the main tab click to re-render QR hub on patient switch
+document.addEventListener('click', function(e) {
+  if (e.target.closest('[data-circle-tab="circle"]')) {
+    setTimeout(() => {
+      const old = document.getElementById('qrHubInjection');
+      if (old) old.remove();
+      const panel = document.getElementById('circleFeaturePanel');
+      if (panel) {
+        const selectedRow = document.querySelector('.circle-patient-row.selected');
+        const pid = selectedRow?.dataset.pid || 'jarras';
+        const qrDiv = document.createElement('div');
+        qrDiv.id = 'qrHubInjection';
+        qrDiv.innerHTML = renderQrHub(pid);
+        panel.insertBefore(qrDiv, panel.firstChild);
+      }
+    }, 100);
   }
 }, true);
 
