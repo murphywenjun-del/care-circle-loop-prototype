@@ -752,6 +752,18 @@
   .ba-col ul{margin:0;padding-left:1.2rem;font-size:.8rem;line-height:1.7}
   .ba-arrow{display:flex;align-items:center;justify-content:center;background:var(--soft);width:50px;font-size:1.5rem;color:var(--brand-2)}
 
+
+  /* ========== VISIT SUMMARY BAR (documentation burden tracker) ========== */
+  .visit-summary{display:flex;align-items:center;gap:1rem;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:.6rem 1rem;margin-bottom:1rem;font-size:.8rem}
+  .visit-summary .vs-stat{text-align:center}
+  .visit-summary .vs-stat strong{display:block;font-size:1.1rem;color:#065f46}
+  .visit-summary .vs-stat span{font-size:.68rem;color:var(--muted)}
+  .visit-summary .vs-divider{width:1px;height:28px;background:#86efac}
+  .visit-summary .vs-label{font-weight:700;color:#065f46;margin-right:auto}
+  .visit-summary .vs-contrast{background:#fff;border-radius:6px;padding:.2rem .5rem;font-size:.7rem;color:var(--muted)}
+  .visit-summary .vs-contrast s{color:var(--red)}
+  .visit-summary .vs-contrast em{color:var(--green);font-style:normal;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -4176,6 +4188,92 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     panel.insertBefore(ba, panel.firstChild);
   }, 600);
+});
+
+
+/* ========== VISIT SUMMARY + CROSS-FEATURE INTERACTIONS ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    // Add visit summary bar to the care circle panel
+    const panel = document.getElementById('circleFeaturePanel');
+    if (!panel) return;
+    
+    const vs = document.createElement('div');
+    vs.className = 'visit-summary';
+    vs.id = 'visitSummaryBar';
+    vs.innerHTML = `
+      <span class="vs-label">📋 This visit</span>
+      <div class="vs-stat"><strong>0</strong><span>forms filled</span></div>
+      <div class="vs-divider"></div>
+      <div class="vs-stat"><strong>6</strong><span>auto-extracted</span></div>
+      <div class="vs-divider"></div>
+      <div class="vs-stat"><strong>2</strong><span>CM confirmed</span></div>
+      <div class="vs-divider"></div>
+      <div class="vs-contrast"><s>4 forms × 45 min</s> → <em>0 forms × 15 min</em></div>
+    `;
+    panel.insertBefore(vs, panel.firstChild);
+  }, 800);
+});
+
+// Cross-feature: when voice "Confirm & add" is clicked, update QR hub
+const _origConfirmClick = document.addEventListener;
+document.addEventListener('click', function(e) {
+  if (e.target.classList?.contains('voice-confirm-btn')) {
+    // Simulate: after confirming voice extractions, QR hub updates
+    setTimeout(() => {
+      const qrHub = document.querySelector('.qr-hub');
+      if (!qrHub) return;
+      const pendingItems = qrHub.querySelectorAll('.qr-member.pending');
+      // Mark first 2 pending as "just connected" with a highlight
+      let marked = 0;
+      pendingItems.forEach(item => {
+        if (marked >= 2) return;
+        item.classList.remove('pending');
+        item.classList.add('connected');
+        const check = item.querySelector('.qrm-check');
+        if (check) check.textContent = '✓';
+        const role = item.querySelector('.qrm-role');
+        if (role) role.textContent = 'Connected · just now (voice)';
+        // Add highlight animation
+        item.style.transition = 'background .5s';
+        item.style.background = '#d1fae5';
+        setTimeout(() => item.style.background = '', 2000);
+        marked++;
+      });
+      if (marked > 0) {
+        showToast(`✓ ${marked} new providers added to QR Connection Hub via voice extraction`);
+        // Update stats
+        const stats = qrHub.querySelectorAll('.qr-stat strong');
+        if (stats[0]) {
+          const newVal = parseInt(stats[0].textContent) + marked;
+          stats[0].textContent = newVal;
+        }
+        if (stats[1]) {
+          stats[1].textContent = Math.max(0, parseInt(stats[1].textContent) - marked);
+        }
+      }
+    }, 600);
+  }
+  
+  // When QR "I acknowledge" button in provider view is clicked
+  if (e.target.textContent?.includes('I acknowledge') || e.target.closest('.pcm-btn')) {
+    setTimeout(() => {
+      showToast('Provider confirmed. QR audit log updated. CM notified via in-app notification.');
+    }, 300);
+  }
+}, true);
+
+// Add a subtle "QR hub linked" indicator on the one-pager view
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    const onePage = document.querySelector('[data-view="onePageView"], #onePageView');
+    if (onePage) {
+      const link = document.createElement('div');
+      link.style.cssText = 'display:flex;align-items:center;gap:.4rem;padding:.4rem .7rem;background:var(--brand-soft);border-radius:6px;font-size:.72rem;color:var(--brand-2);font-weight:600;margin-bottom:.8rem';
+      link.innerHTML = '↗ This QR is managed by the <a href="#" style="color:var(--brand-2)">QR Connection Hub</a> in Care Circle · 4 of 9 members connected';
+      onePage.insertBefore(link, onePage.querySelector('h2, h3, .card') || onePage.firstChild);
+    }
+  }, 1000);
 });
 
 </script>
