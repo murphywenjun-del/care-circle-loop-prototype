@@ -801,6 +801,31 @@
   .phone-control-item .pct-label{flex:1}
   .phone-control-item .pct-revoke{background:#fef2f2;color:#dc2626;border:none;border-radius:4px;padding:.15rem .4rem;font-size:.6rem;cursor:pointer;font-weight:600}
 
+
+  /* ========== PROVIDER PERSPECTIVE + LOOP CLOSURE ========== */
+  .provider-inbox{background:#f8fafc;border:2px solid var(--line);border-radius:14px;padding:1.2rem;margin-top:1rem}
+  .provider-inbox-label{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem}
+  .provider-note-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem;margin-bottom:.5rem;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .provider-note-card .pnc-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+  .provider-note-card .pnc-avatar{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);display:grid;place-items:center;font-size:.7rem;font-weight:700;color:var(--brand-2)}
+  .provider-note-card .pnc-from{font-size:.82rem;font-weight:600}
+  .provider-note-card .pnc-from small{font-weight:400;color:var(--muted);display:block}
+  .provider-note-card .pnc-cc{display:inline-flex;align-items:center;gap:.3rem;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:.15rem .5rem;font-size:.68rem;color:#065f46;margin-left:auto}
+  .provider-note-card .pnc-body{font-size:.8rem;color:var(--text);line-height:1.5}
+  .provider-note-card .pnc-body em{background:#fef08a;padding:0 3px;border-radius:2px}
+  .provider-note-card .pnc-time{font-size:.68rem;color:var(--muted);margin-top:.4rem;text-align:right}
+  
+  .loop-closed-banner{display:flex;align-items:center;gap:.6rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:10px;padding:.6rem 1rem;margin-top:.8rem;font-size:.8rem;color:#065f46}
+  .loop-closed-banner .lcb-icon{font-size:1.2rem}
+  .loop-closed-banner strong{color:#047857}
+  
+  .provider-effort{background:#fff;border:1px dashed var(--line);border-radius:8px;padding:.6rem .8rem;margin-top:.8rem;font-size:.78rem}
+  .provider-effort h5{margin:0 0 .3rem;font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .provider-effort .pe-step{display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem}
+  .provider-effort .pe-step .pes-num{width:18px;height:18px;border-radius:50%;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center;font-size:.6rem;font-weight:700}
+  .provider-effort .pe-step span{font-size:.78rem}
+  .provider-effort .pe-total{margin-top:.5rem;padding-top:.4rem;border-top:1px solid var(--line);font-size:.72rem;color:var(--green);font-weight:600}
+
 </style>
 </head>
 <body>
@@ -4450,6 +4475,65 @@ document.addEventListener('DOMContentLoaded', function() {
       setTimeout(() => observer.disconnect(), 3000);
     }
   }, 1200);
+});
+
+
+/* ========== PROVIDER INBOX + LOOP CLOSURE (appended to QR Hub) ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    const qrHub = document.querySelector('.qr-hub');
+    if (!qrHub) return;
+    
+    const providerSection = document.createElement('div');
+    providerSection.innerHTML = `
+      <!-- What the provider does (minimal effort) -->
+      <div class="provider-effort">
+        <h5>Provider's action when CC'ing notes</h5>
+        <div class="pe-step"><div class="pes-num">1</div><span>Write consult note in their own EMR (as they already do)</span></div>
+        <div class="pe-step"><div class="pes-num">2</div><span>Add one CC field: <code style="background:var(--soft);padding:.1rem .3rem;border-radius:3px;font-size:.72rem">m.okafor.circ@southlake.example</code></span></div>
+        <div class="pe-step"><div class="pes-num">3</div><span>Done. No login to our system. No new form.</span></div>
+        <div class="pe-total">⏱ Total added effort: ~10 seconds. No new system, no new account.</div>
+      </div>
+
+      <!-- What CM receives -->
+      <div class="provider-inbox" style="margin-top:1rem">
+        <div class="provider-inbox-label">📥 What the Care Manager receives</div>
+        <div class="provider-note-card">
+          <div class="pnc-header">
+            <div class="pnc-avatar">DP</div>
+            <div class="pnc-from">Dr. Patel — Oncology Consult<small>Southlake · Jun 3</small></div>
+            <div class="pnc-cc">✓ CC'd to you</div>
+          </div>
+          <div class="pnc-body">
+            Patient received cycle 3 chemo (carboplatin + pemetrexed). <em>Responding well</em>. 
+            Will reassess in 4 weeks. Escalate if ESAS-r scores worsen between cycles.
+            <em>Patient expressed concern about transport to next appointment.</em>
+          </div>
+          <div class="pnc-time">Received via QR CC · Jun 3, 4:32 PM</div>
+        </div>
+        <div class="provider-note-card">
+          <div class="pnc-header">
+            <div class="pnc-avatar">PT</div>
+            <div class="pnc-from">Palliative Team — Status Update<small>St. Joseph's · Jun 10</small></div>
+            <div class="pnc-cc">✓ CC'd to you</div>
+          </div>
+          <div class="pnc-body">
+            Multidisciplinary team reviewed. <em>Hospice referral approved</em> — pending 
+            start date. Pain management adjusted (morphine 15mg q12h PRN). 
+            Caregiver training scheduled Jun 18.
+          </div>
+          <div class="pnc-time">Received via QR CC · Jun 10, 11:15 AM</div>
+        </div>
+        
+        <div class="loop-closed-banner">
+          <span class="lcb-icon">✅</span>
+          <div><strong>Loop closed:</strong> 2 specialist updates received via QR-CC this month. 
+          0 untracked referrals. CM is in the loop without opening 5 different EMRs.</div>
+        </div>
+      </div>
+    `;
+    qrHub.appendChild(providerSection);
+  }, 2000);
 });
 
 </script>
