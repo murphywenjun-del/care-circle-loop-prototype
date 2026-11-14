@@ -826,6 +826,37 @@
   .provider-effort .pe-step span{font-size:.78rem}
   .provider-effort .pe-total{margin-top:.5rem;padding-top:.4rem;border-top:1px solid var(--line);font-size:.72rem;color:var(--green);font-weight:600}
 
+
+  /* ========== NAVIGATOR HANDOFF 3-STEP FLOW ========== */
+  .nav-handoff-flow{background:#fff;border:2px solid var(--amber);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
+  .nfh-title{font-weight:700;font-size:.95rem;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem}
+  .nfh-title .nfh-badge{background:var(--amber-bg);color:var(--amber);border-radius:999px;padding:.15rem .5rem;font-size:.7rem;font-weight:600}
+  .nfh-steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:.3rem;align-items:start}
+  .nfh-step{padding:.7rem;border-radius:10px;border:1px solid var(--line)}
+  .nfh-step.done{background:var(--green-bg);border-color:#86efac}
+  .nfh-step.active{background:var(--amber-bg);border-color:#fde68a}
+  .nfh-step.pending{background:#f8fafc}
+  .nfh-step h5{margin:0 0 .3rem;font-size:.75rem;font-weight:700}
+  .nfh-step.done h5{color:#065f46}
+  .nfh-step.active h5{color:#92400e}
+  .nfh-step p{margin:0;font-size:.75rem;color:var(--muted);line-height:1.4}
+  .nfh-step .nfh-actor{display:inline-block;margin-top:.4rem;background:var(--soft);border-radius:4px;padding:.1rem .4rem;font-size:.65rem;font-weight:600}
+  .nfh-step .nfh-time{font-size:.65rem;color:var(--muted);margin-top:.3rem}
+  .nfh-arrow{display:flex;align-items:center;justify-content:center;width:30px;font-size:1.2rem;color:var(--muted);padding-top:1.5rem}
+  .nfh-result{display:flex;align-items:center;gap:.5rem;margin-top:.8rem;padding:.5rem .8rem;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:.8rem;color:#065f46}
+  .nfh-result .nfr-icon{font-size:1.1rem}
+  
+  .nav-handoff-list{display:grid;gap:.5rem;margin-top:1rem}
+  .nhi{display:grid;grid-template-columns:auto 1fr auto;gap:.7rem;align-items:center;padding:.6rem .8rem;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:.8rem}
+  .nhi .nhi-status{width:8px;height:8px;border-radius:50%}
+  .nhi .nhi-status.open{background:var(--amber)}
+  .nhi .nhi-status.in-progress{background:var(--brand)}
+  .nhi .nhi-status.done{background:var(--green)}
+  .nhi .nhi-title{font-weight:600}
+  .nhi .nhi-title small{display:block;font-weight:400;color:var(--muted);font-size:.72rem;margin-top:.1rem}
+  .nhi .nhi-meta{font-size:.7rem;color:var(--muted);text-align:right}
+  .nhi .nhi-meta strong{color:var(--text)}
+
 </style>
 </head>
 <body>
@@ -4534,6 +4565,77 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     qrHub.appendChild(providerSection);
   }, 2000);
+});
+
+
+/* ========== NAVIGATOR HANDOFF 3-STEP (inside Navigator Panel tab) ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    // Find and enhance the Navigator tab content
+    const navTab = document.querySelector('[data-circle-tab="navigator"]');
+    if (!navTab) return;
+    
+    // Intercept click to add handoff flow
+    navTab.addEventListener('click', function() {
+      setTimeout(() => {
+        const panel = document.getElementById('circleFeaturePanel');
+        if (!panel || panel.querySelector('.nav-handoff-flow')) return;
+        
+        const flow = document.createElement('div');
+        flow.innerHTML = `
+          <div class="nav-handoff-flow">
+            <div class="nfh-title">Navigator Handoff · 3-Step Closed Loop <span class="nfh-badge">Active: 2</span></div>
+            <div class="nfh-steps">
+              <div class="nfh-step done">
+                <h5>1. Identify Gap</h5>
+                <p>CM conversation flagged: "no one for transport"</p>
+                <span class="nfh-actor">Maria (CM)</span>
+                <div class="nfh-time">Jun 10, 2:15 PM</div>
+              </div>
+              <div class="nfh-arrow">→</div>
+              <div class="nfh-step active">
+                <h5>2. Connect Service</h5>
+                <p>Karen matched CHATS · confirmed pickup Jun 18</p>
+                <span class="nfh-actor">Karen (Navigator)</span>
+                <div class="nfh-time">Jun 11, 9:00 AM · in progress</div>
+              </div>
+              <div class="nfh-arrow">→</div>
+              <div class="nfh-step pending">
+                <h5>3. Confirm Back</h5>
+                <p>CM notified: "transport resolved" · gap closed</p>
+                <span class="nfh-actor">System → CM</span>
+                <div class="nfh-time">Expected: Jun 18</div>
+              </div>
+            </div>
+            <div class="nfh-result">
+              <span class="nfr-icon">✅</span>
+              <div><strong>Closed loop:</strong> CM knows the gap is being handled. No email chasing. No "who's on this?"</div>
+            </div>
+          </div>
+
+          <h4 style="font-size:.85rem;margin:1rem 0 .5rem">All navigator handoffs · Margaret</h4>
+          <div class="nav-handoff-list">
+            <div class="nhi">
+              <div class="nhi-status in-progress"></div>
+              <div class="nhi-title">Transport to oncology (CHATS)<small>Karen matched provider · pickup Jun 18 confirmed</small></div>
+              <div class="nhi-meta"><strong>In progress</strong><br>Jun 11</div>
+            </div>
+            <div class="nhi">
+              <div class="nhi-status open"></div>
+              <div class="nhi-title">Hospice start date pending<small>Navigator following up with St. Joseph's</small></div>
+              <div class="nhi-meta"><strong>Open</strong><br>Jun 12</div>
+            </div>
+            <div class="nhi">
+              <div class="nhi-status done"></div>
+              <div class="nhi-title">Caregiver respite — 2 weeks approved<small>Community care worker confirmed schedule</small></div>
+              <div class="nhi-meta"><strong>Closed</strong><br>Jun 8</div>
+            </div>
+          </div>
+        `;
+        panel.insertBefore(flow, panel.firstChild);
+      }, 300);
+    });
+  }, 1500);
 });
 
 </script>
