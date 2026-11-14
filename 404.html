@@ -764,6 +764,43 @@
   .visit-summary .vs-contrast s{color:var(--red)}
   .visit-summary .vs-contrast em{color:var(--green);font-style:normal;font-weight:600}
 
+
+  /* ========== PATIENT PHONE VIEW (what Margaret sees) ========== */
+  .phone-mockup{max-width:320px;margin:1rem auto;background:#1a1a2e;border-radius:28px;padding:1.2rem;border:3px solid #333;box-shadow:0 12px 40px rgba(0,0,0,.2);position:relative}
+  .phone-mockup::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:60px;height:5px;background:#444;border-radius:99px}
+  .phone-header{text-align:center;padding:.5rem 0 .8rem;border-bottom:1px solid #333}
+  .phone-header .ph-title{color:#fff;font-size:.9rem;font-weight:700}
+  .phone-header .ph-sub{color:#94a3b8;font-size:.68rem;margin-top:.2rem}
+  .phone-section{margin-top:.8rem}
+  .phone-section h5{color:#93c5fd;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 .4rem}
+  
+  .phone-qr-card{background:#fff;border-radius:12px;padding:.8rem;text-align:center;margin-bottom:.6rem}
+  .phone-qr-card .pqqr{width:80px;height:80px;background:#1e40af;border-radius:8px;margin:0 auto .5rem;display:grid;place-items:center;color:#fff;font-size:2rem}
+  .phone-qr-card .pqqr-label{font-size:.72rem;font-weight:700;color:#1e293b}
+  .phone-qr-card .pqqr-sub{font-size:.65rem;color:#64748b;margin-top:.15rem}
+  .phone-qr-card .pqqr-share{margin-top:.5rem;background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:.35rem .8rem;font-size:.7rem;font-weight:600;cursor:pointer}
+  
+  .phone-circle{display:flex;flex-direction:column;gap:.35rem}
+  .phone-circle-item{display:flex;align-items:center;gap:.5rem;background:#f1f5f9;border-radius:8px;padding:.45rem .6rem}
+  .phone-circle-item .pci-avatar{width:28px;height:28px;border-radius:50%;background:#dbeafe;display:grid;place-items:center;font-size:.65rem;font-weight:700;color:#1e40af}
+  .phone-circle-item .pci-name{font-size:.75rem;font-weight:600;color:#1e293b;flex:1}
+  .phone-circle-item .pci-status{font-size:.62rem;padding:.1rem .4rem;border-radius:4px;font-weight:600}
+  .phone-circle-item .pci-status.connected{background:#dcfce7;color:#166534}
+  .phone-circle-item .pci-status.pending{background:#fef3c7;color:#92400e}
+  .phone-circle-item .pci-access{font-size:.6rem;color:#64748b}
+  
+  .phone-notif{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:.5rem .7rem;margin-bottom:.4rem;font-size:.72rem}
+  .phone-notif .pn-icon{display:inline-block;width:20px;height:20px;border-radius:50%;background:#dbeafe;display:grid;place-items:center;font-size:.6rem;margin-right:.4rem}
+  .phone-notif .pn-title{font-weight:600;color:#1e293b}
+  .phone-notif .pn-time{font-size:.62rem;color:#94a3b8;margin-top:.15rem}
+  .phone-notif.new{border-left:3px solid #3b82f6}
+  
+  .phone-controls{display:grid;gap:.3rem}
+  .phone-control-item{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:#e2e8f0;padding:.3rem .4rem}
+  .phone-control-item input{width:14px;height:14px;accent-color:#3b82f6}
+  .phone-control-item .pct-label{flex:1}
+  .phone-control-item .pct-revoke{background:#fef2f2;color:#dc2626;border:none;border-radius:4px;padding:.15rem .4rem;font-size:.6rem;cursor:pointer;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -4274,6 +4311,145 @@ document.addEventListener('DOMContentLoaded', function() {
       onePage.insertBefore(link, onePage.querySelector('h2, h3, .card') || onePage.firstChild);
     }
   }, 1000);
+});
+
+
+/* ========== PATIENT PHONE MOCKUP (inside Patient Control tab) ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    // Find the Patient Control panel and add phone mockup
+    const pcTab = document.querySelector('[data-circle-tab="patient-control"]');
+    if (pcTab) {
+      // Intercept the click to add phone mockup to the rendered content
+      const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          const added = m.addedNodes;
+          for (const node of added) {
+            if (node.nodeType === 1 && node.querySelector?.('.patient-ctrl-view')) {
+              const view = node.querySelector('.patient-ctrl-view');
+              if (view && !view.querySelector('.phone-mockup')) {
+                const phone = document.createElement('div');
+                phone.className = 'phone-mockup';
+                phone.id = 'patientPhoneMockup';
+                phone.innerHTML = `
+                  <div class="phone-header">
+                    <div class="ph-title">My Care Circle</div>
+                    <div class="ph-sub">Margaret · Southlake FHT</div>
+                  </div>
+                  
+                  <div class="phone-section">
+                    <h5>My QR Card</h5>
+                    <div class="phone-qr-card">
+                      <div class="pqqr">▣</div>
+                      <div class="pqqr-label">Southlake Care Circle QR</div>
+                      <div class="pqqr-sub">4 of 9 circle members connected · Last updated Jun 15</div>
+                      <button class="pqqr-share" onclick="showToast('QR shared. Provider will see your CM\'s contact + consent.')">📲 Show to Provider</button>
+                    </div>
+                  </div>
+                  
+                  <div class="phone-section">
+                    <h5>My Care Circle (9 members)</h5>
+                    <div class="phone-circle">
+                      <div class="phone-circle-item">
+                        <div class="pci-avatar">DC</div>
+                        <div class="pci-name">Dr. Chen <span class="pci-access">· PCP</span></div>
+                        <span class="pci-status connected">✓ Connected</span>
+                      </div>
+                      <div class="phone-circle-item">
+                        <div class="pci-avatar">DP</div>
+                        <div class="pci-name">Dr. Patel <span class="pci-access">· Oncologist</span></div>
+                        <span class="pci-status connected">✓ Connected</span>
+                      </div>
+                      <div class="phone-circle-item">
+                        <div class="pci-avatar">PT</div>
+                        <div class="pci-name">Palliative Team</div>
+                        <span class="pci-status connected">✓ CC notes</span>
+                      </div>
+                      <div class="phone-circle-item">
+                        <div class="pci-avatar">RB</div>
+                        <div class="pci-name">Rebecca <span class="pci-access">· Social Worker</span></div>
+                        <span class="pci-status connected">✓ Connected</span>
+                      </div>
+                      <div class="phone-circle-item">
+                        <div class="pci-avatar" style="background:#fef3c7;color:#92400e">HD</div>
+                        <div class="pci-name">Hospice (designated)</div>
+                        <span class="pci-status pending">Pending</span>
+                      </div>
+                      <div class="phone-circle-item">
+                        <div class="pci-avatar" style="background:#fef3c7;color:#92400e">OH</div>
+                        <div class="pci-name">Ontario Health at Home</div>
+                        <span class="pci-status pending">Pending</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="phone-section">
+                    <h5>Notifications</h5>
+                    <div class="phone-notif new">
+                      <span class="pn-icon">📸</span>
+                      <div>
+                        <div class="pn-title">Dr. Patel scanned your QR</div>
+                        <small>She can now CC her consult notes to your Care Manager.</small>
+                        <div class="pn-time">Jun 3, 2:30 PM</div>
+                      </div>
+                    </div>
+                    <div class="phone-notif">
+                      <span class="pn-icon">✓</span>
+                      <div>
+                        <div class="pn-title">Task completed: CHATS transport</div>
+                        <small>Karen (Navigator) confirmed pickup for your oncology appointment.</small>
+                        <div class="pn-time">Jun 12, 4:15 PM</div>
+                      </div>
+                    </div>
+                    <div class="phone-notif">
+                      <span class="pn-icon">📋</span>
+                      <div>
+                        <div class="pn-title">Your care plan was updated</div>
+                        <small>Maria added "symptom management" goals. Review &amp; confirm.</small>
+                        <div class="pn-time">Jun 15, 9:00 AM</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="phone-section">
+                    <h5>Who Can See My Info</h5>
+                    <div class="phone-controls">
+                      <div class="phone-control-item">
+                        <input type="checkbox" checked>
+                        <span class="pct-label">My Care Manager (Maria)</span>
+                        <span class="pci-status connected" style="position:static">Full</span>
+                      </div>
+                      <div class="phone-control-item">
+                        <input type="checkbox" checked>
+                        <span class="pct-label">My PCP (Dr. Chen)</span>
+                        <button class="pct-revoke" onclick="showToast('Access revoked. Maria will be notified.')">Revoke</button>
+                      </div>
+                      <div class="phone-control-item">
+                        <input type="checkbox">
+                        <span class="pct-label">Family (Helen)</span>
+                        <button class="pct-revoke" onclick="this.textContent='Off';showToast('Helen no longer sees your care plan details.')">Limit</button>
+                      </div>
+                      <div class="phone-control-item">
+                        <input type="checkbox" checked>
+                        <span class="pct-label">Providers I scan my QR to</span>
+                        <span style="font-size:.6rem;color:#64748b">auto</span>
+                      </div>
+                    </div>
+                  </div>
+                `;
+                view.appendChild(phone);
+                observer.disconnect();
+              }
+            }
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      // Trigger: click the Patient Control tab to render content
+      pcTab.click();
+      setTimeout(() => observer.disconnect(), 3000);
+    }
+  }, 1200);
 });
 
 </script>
