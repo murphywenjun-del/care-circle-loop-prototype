@@ -726,6 +726,11 @@
   .pc-notification{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:.75rem;color:#92400e;margin-top:.5rem}
   .pc-notification .pcn-icon{font-size:1rem}
 
+
+  .simplification-note{background:linear-gradient(135deg,#fef9c3,#fef3c7);border:1px solid #fde68a;border-radius:10px;padding:.7rem 1rem;font-size:.82rem;color:#92400e;display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+  .simplification-note .sn-icon{font-size:1.2rem;flex-shrink:0}
+  .simplification-note strong{color:#78350f}
+
 </style>
 </head>
 <body>
@@ -3562,6 +3567,22 @@ const voiceDemo = {
 
 function renderVoicePanel(patient) {
   const p = patients.find(x => x.id === patient) || patients[0];
+  // Animate: show transcript lines one by one
+  setTimeout(() => {
+    const vt = document.querySelector('.voice-transcript');
+    if (!vt) return;
+    const lines = vt.querySelectorAll('p');
+    lines.forEach((l, i) => { l.style.opacity = '0'; l.style.transition = `opacity .4s ${i * 0.8}s`; });
+    requestAnimationFrame(() => lines.forEach(l => l.style.opacity = '1'));
+    // Also animate extraction items
+    setTimeout(() => {
+      document.querySelectorAll('.voice-extract-item').forEach((item, i) => {
+        item.style.opacity = '0';
+        item.style.transition = `opacity .3s ${i * 0.15}s`;
+        requestAnimationFrame(() => item.style.opacity = '1');
+      });
+    }, lines.length * 800);
+  }, 200);
   return `
     <div class="voice-mode">
       <div class="voice-header">
@@ -3912,6 +3933,70 @@ document.addEventListener('click', function(e) {
     </div>
   `;
 }, true);
+
+
+/* ========== VERSION BANNER + DEMO GUIDE ========== */
+(function() {
+  const banner = document.createElement('div');
+  banner.id = 'versionBanner';
+  banner.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;background:#1e293b;color:#fff;padding:.8rem 1.2rem;border-radius:10px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.25);font-size:.78rem;line-height:1.5';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+      <span style="background:#10b981;padding:.1rem .5rem;border-radius:4px;font-size:.65rem;font-weight:700">v2</span>
+      <strong style="font-size:.85rem">Oct 21 updates</strong>
+      <button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">✕</button>
+    </div>
+    <ul style="margin:0;padding-left:1.1rem;color:#cbd5e1">
+      <li><strong style="color:#fff">Voice Populate</strong> — live conversation → auto-extract</li>
+      <li><strong style="color:#fff">Consent & Access</strong> — patient controls who sees circle</li>
+      <li><strong style="color:#fff">QR Connection Hub</strong> — circle members QR status</li>
+      <li><strong style="color:#fff">Patient Control</strong> — "I decide who's in my circle"</li>
+      <li style="color:#94a3b8">Capacity module: de-prioritized</li>
+    </ul>
+  `;
+  document.body.appendChild(banner);
+  // Auto-hide after 12s
+  setTimeout(() => { banner.style.transition='opacity .5s'; banner.style.opacity='0'; setTimeout(()=>banner.remove(),500); }, 15000);
+})();
+
+/* ========== LIVE VOICE TYPING EFFECT ========== */
+const _origRenderVoice = window.renderVoicePanel;
+if (_origRenderVoice) {
+  window.renderVoicePanel = function(patient) {
+    const html = _origRenderVoice(patient);
+    // Add a typing cursor animation to the transcript
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const transcript = div.querySelector('.voice-transcript');
+    if (transcript) {
+      const cursor = document.createElement('span');
+      cursor.textContent = '▊';
+      cursor.style.cssText = 'animation:blink-cursor 1s step-end infinite;color:var(--brand);margin-left:2px';
+      transcript.lastElementChild?.appendChild(cursor);
+      // Add blink keyframes if not present
+      if (!document.getElementById('blinkCursorStyle')) {
+        const style = document.createElement('style');
+        style.id = 'blinkCursorStyle';
+        style.textContent = '@keyframes blink-cursor{50%{opacity:0}}';
+        document.head.appendChild(style);
+      }
+    }
+    return div.innerHTML;
+  };
+}
+
+
+/* ========== SIMPLIFICATION PRINCIPLE BANNER ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    const worklist = document.querySelector('[data-view-target="worklistView"], #worklistView');
+    if (!worklist) return;
+    const note = document.createElement('div');
+    note.className = 'simplification-note';
+    note.innerHTML = `<span class="sn-icon">⚡</span><div><strong>Design principle:</strong> "If it's another thing they have to document into, they won't use it." — Every feature below <em>reduces</em> documentation burden. Voice → auto-extracts. QR → auto-connects. No extra data entry.</div>`;
+    worklist.insertBefore(note, worklist.firstChild);
+  }, 500);
+});
 
 </script>
 </body>
