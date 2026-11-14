@@ -857,6 +857,11 @@
   .nhi .nhi-meta{font-size:.7rem;color:var(--muted);text-align:right}
   .nhi .nhi-meta strong{color:var(--text)}
 
+
+  .scroll-hint{text-align:center;font-size:.7rem;color:var(--muted);padding:.4rem 0;opacity:.7}
+  .scroll-hint .sh-arrow{display:inline-block;animation:bounce-down 1.5s infinite}
+  @keyframes bounce-down{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+
 </style>
 </head>
 <body>
@@ -4129,10 +4134,9 @@ document.addEventListener('DOMContentLoaded', function() {
 const tourSteps = [
   {
     title: "1. QR Connection Hub",
-    desc: "Each circle member has QR status. 'Connected' = provider knows this patient has a CM. 'Pending' = not yet shared. This solves gaps 14 + 16 without EMR integration.",
+    desc: "Each circle member has QR status. Provider CCs notes to CM — closes the gap without EMR integration. See 'Provider effort: 10 seconds' below.",
     target: '.qr-hub',
     action: () => {
-      // Navigate to care circle view
       const ccBtn = document.querySelector('[data-view-target="careCircleView"]') || document.querySelector('[data-view="careCircleView"]');
       if (ccBtn) ccBtn.click();
       setTimeout(() => {
@@ -4143,7 +4147,7 @@ const tourSteps = [
   },
   {
     title: "2. Voice Populate",
-    desc: "CM and patient talk naturally. System extracts providers/services in real-time. CM just confirms — no post-hoc documentation.",
+    desc: "CM and patient talk naturally. System extracts in real-time. CM just confirms. Zero forms. (Watch the transcript animate.)",
     target: '[data-circle-tab="voice"]',
     action: () => {
       const voiceTab = document.querySelector('[data-circle-tab="voice"]');
@@ -4152,7 +4156,7 @@ const tourSteps = [
   },
   {
     title: "3. Consent & Access",
-    desc: "Patient controls who sees their circle. Recording consent. QR sharing consent. All logged per PHIPA.",
+    desc: "Patient controls who sees their circle. Recording consent, QR consent, access toggles. All logged per PHIPA.",
     target: '[data-circle-tab="consent"]',
     action: () => {
       const consentTab = document.querySelector('[data-circle-tab="consent"]');
@@ -4160,8 +4164,8 @@ const tourSteps = [
     }
   },
   {
-    title: "4. Patient Control",
-    desc: "'I decide who's in my circle.' Patient can revoke access, limit family visibility, control QR sharing. This is consent-based design.",
+    title: "4. Patient Control + Phone View",
+    desc: "'I decide who's in my circle.' Phone mockup shows Margaret's perspective: her QR card, notifications, access controls.",
     target: '[data-circle-tab="patient-control"]',
     action: () => {
       const pcTab = document.querySelector('[data-circle-tab="patient-control"]');
@@ -4169,8 +4173,17 @@ const tourSteps = [
     }
   },
   {
-    title: "5. Simplification",
-    desc: "Before: CM filled 4 forms per visit. After: CM talks, system extracts, CM confirms. Documentation burden reduced ~60%.",
+    title: "5. Navigator Handoff (Closed Loop)",
+    desc: "3 steps: CM identifies gap → Navigator connects service → System confirms back. No email chasing.",
+    target: '[data-circle-tab="navigator"]',
+    action: () => {
+      const navTab = document.querySelector('[data-circle-tab="navigator"]');
+      if (navTab) navTab.click();
+    }
+  },
+  {
+    title: "6. Before/After + Simplicity",
+    desc: "45 min admin → 15 min. 4 forms → 0. 'If it's another thing to document into, they won't use it.'",
     target: '.simplification-note',
     action: () => {
       const wlBtn = document.querySelector('[data-view-target="worklistView"]') || document.querySelector('[data-view="worklistView"]');
@@ -4636,6 +4649,19 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 300);
     });
   }, 1500);
+});
+
+
+/* ========== SCROLL HINT ON QR HUB ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    const qrHub = document.querySelector('.qr-hub');
+    if (!qrHub) return;
+    const hint = document.createElement('div');
+    hint.className = 'scroll-hint';
+    hint.innerHTML = '<span class="sh-arrow">↓</span> Scroll: provider effort + loop closure below';
+    qrHub.appendChild(hint);
+  }, 3500);
 });
 
 </script>
