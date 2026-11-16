@@ -7188,7 +7188,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ba) ba.style.display = 'none';
     
     // D. Wrap Provider inbox + effort in a sub-collapse within QR hub
-    const collapsibleBody = wrapper.querySelector('.collapsible-body');
+    const collapsibleBody = document.querySelector('#qrCollapsible .collapsible-body');
     if (collapsibleBody) {
       const providerInbox = collapsibleBody.querySelector('.provider-inbox');
       const providerEffort = collapsibleBody.querySelector('.provider-effort');
