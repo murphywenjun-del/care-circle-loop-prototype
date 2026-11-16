@@ -7389,15 +7389,47 @@ function generateQRGrid(seed, size = 7) {
     }
   }, true);
   
-  // Generic button feedback
+  // Specific button feedback (no more generic "action triggered")
+  var TOAST_MAP = {
+    'Mark top action done': '✓ Task closed: "Call Dr. Chen re: ACP review" · moved to done · next: verify with patient',
+    'Accept (create task)': '✓ Task created · assigned to Maria · due this week · added to worklist',
+    'Accept': '✓ Recommendation accepted · task created and added to care plan',
+    'Modify': '✎ Recommendation opened for edit · adjust and re-assign',
+    'Override': '⚠ Override logged · your note is attached · supervisor notified',
+    'Invite to circle': '📨 Invitation sent to new member · pending their consent · appears in QR hub as "pending"',
+    'Share': '📤 QR shared with member · they will receive a push notification to scan & connect',
+    'Print QR card for patient': '🖨 Print dialog opened · 1-page QR card with patient + CM info + consent status',
+    'I acknowledge · Connect me to this care circle': '✓ Provider acknowledged · QR connection logged · CM inbox updated · PHIPA audit entry created',
+    'Confirm & add to circle': '✓ 5 confirmed + 1 flagged → added to care circle · QR hub updated · patient notified',
+    'Discard': '✕ Extraction discarded · no changes made to circle · transcript retained 30 days',
+    'Open care plan →': '→ Care plan opened · showing goals, blockers, tasks, and timeline',
+    'New handoff': '↔ Navigator handoff created · "Identified gap: transport" · status: pending → in progress',
+    'Advance handoff': '→ Handoff advanced · "connect service" confirmed · loop will close when patient confirms',
+    'Save transition': '✓ Transition note saved · goals of care updated · team notified',
+    'Reactivation': '⚡ Reactivation pathway opened · new referral to CHRIS · 14-day follow-up scheduled',
+    'Save my preferences': '✓ Consent preferences saved · access updated for all circle members · PHIPA log updated',
+    'Refresh': '↻ Data refreshed · last sync: just now · 0 new items',
+    'Care manager view': '👤 Switched to CM perspective · showing Maria\'s panel (5 patients)',
+    'Mark done': '✓ Marked done · task removed from worklist · timeline updated',
+    'Start Visit': '▶ Voice visit started · recording ready · speak naturally with patient',
+    'Demo Tour': '▶ Guided tour started · 6 steps · follow highlights',
+    'Skip to demo': '⏩ Skipped to demo state · all features populated',
+    'Complete': '✓ Action completed · worklist updated · next patient queued'
+  };
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('button');
     if (btn && !btn.onclick && !btn.closest('#qrScanOverlay') && !btn.closest('.voice-actions') && !btn.closest('[class*="nav"]') && !btn.closest('[class*="sidebar"]') && !btn.closest('[class*="main-nav"]')) {
-      var label = btn.textContent.trim().replace(/\s+/g, ' ').substring(0, 40);
+      var label = btn.textContent.trim().replace(/\s+/g, ' ').substring(0, 50);
       if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn') && !btn.classList.contains('qrm-share') && !btn.classList.contains('pcm-btn')) {
         e.preventDefault();
         if (typeof showToast === 'function') {
-          showToast('"' + label + '" \u2014 action triggered');
+          var msg = TOAST_MAP[label];
+          if (!msg) {
+            // Fallback: specific but not generic
+            var action = label.replace(/^[\s▶✓✎⚠↔📨📤🖨⏩⚡👤]/, '').trim();
+            msg = '✓ "' + action + '" executed · state updated · audit log entry created';
+          }
+          showToast(msg);
         }
       }
     }
