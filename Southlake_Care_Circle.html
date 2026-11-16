@@ -7895,7 +7895,111 @@ function generateQRGrid(seed, size = 7) {
     }
   }, true);
 
-    // CSS for new states (row-closed, confirm/disabled)
+    // ---- Scoring color blocks (risk pills) → click opens 'why this score' popover ----
+  function riskBreakdown(level) {
+    var base = {
+      high: [
+        ['SPICT 3.0', 'score 5 of 9 — 6 of 9 items present', 'red'],
+        ['CHATS', 'High 10 — frequent ED/admissions', 'red'],
+        ['ESAS pain', '5/10 chronic, worsening', 'amber'],
+        ['HOMR', 'Palliative trigger: yes', 'red'],
+        ['Falls', '2 in last 30 days', 'amber']
+      ],
+      medium: [
+        ['SPICT 3.0', 'score 3 of 9 — 3 items present', 'amber'],
+        ['CHATS', 'Medium 6', 'amber'],
+        ['ESAS', 'Pain 3/10 stable', 'green'],
+        ['Nutrition', 'Mild risk (MNA 11)', 'amber']
+      ],
+      low: [
+        ['SPICT 3.0', 'score 1 of 9 — 1 item', 'green'],
+        ['CHATS', 'Low 2', 'green'],
+        ['ESAS', 'Pain 1/10', 'green']
+      ]
+    };
+    return base[level] || base.medium;
+  }
+  document.addEventListener('click', function(e) {
+    var pill = e.target.closest('.risk-pill');
+    if (!pill) return;
+    // Build a popover anchored to the pill
+    var existing = document.getElementById('riskPopover');
+    if (existing) existing.remove();
+    var level = pill.className.indexOf('high') > -1 ? 'high' : pill.className.indexOf('medium') > -1 ? 'medium' : pill.className.indexOf('low') > -1 ? 'low' : 'medium';
+    var rows = riskBreakdown(level);
+    var colors = { red:'#dc2626', amber:'#d97706', green:'#16a34a' };
+    var pop = document.createElement('div');
+    pop.id = 'riskPopover';
+    pop.style.cssText = 'position:fixed;z-index:30000;max-width:280px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:.7rem .8rem;font-size:.78rem';
+    var title = document.createElement('div');
+    title.style.cssText = 'font-weight:700;margin-bottom:.5rem;color:' + colors[level === 'high' ? 'red' : level === 'medium' ? 'amber' : 'green'];
+    title.textContent = '\u25cb Why \u201c' + pill.textContent.trim() + '\u201d \u2014 score drivers';
+    pop.appendChild(title);
+    rows.forEach(function(r) {
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:.4rem;margin:.3rem 0';
+      var dot = document.createElement('span');
+      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;background:' + colors[r[2]] + ';flex:none';
+      var lbl = document.createElement('span');
+      lbl.style.cssText = 'font-weight:600;min-width:70px';
+      lbl.textContent = r[0];
+      var desc = document.createElement('span');
+      desc.style.cssText = 'color:var(--muted)';
+      desc.textContent = r[1];
+      row.appendChild(dot); row.appendChild(lbl); row.appendChild(desc);
+      pop.appendChild(row);
+    });
+    var foot = document.createElement('div');
+    foot.style.cssText = 'margin-top:.5rem;padding-top:.4rem;border-top:1px solid var(--line);color:var(--muted);font-size:.7rem';
+    foot.innerHTML = 'Auto-assessed \u00b7 click to edit \u00b7 <button class="rp-edit" style="color:var(--brand);background:none;border:none;cursor:pointer;font-size:.7rem">adjust drivers</button>';
+    pop.appendChild(foot);
+    document.body.appendChild(pop);
+    // Position near pill
+    var rect = pill.getBoundingClientRect();
+    pop.style.top = Math.min(rect.bottom + 6, window.innerHeight - 240) + 'px';
+    pop.style.left = Math.min(rect.left, window.innerWidth - 300) + 'px';
+    // Edit button in popover
+    pop.querySelector('.rp-edit').onclick = function() { pop.querySelector('.rp-edit').textContent = '\u2713 drivers editable \u2014 draft'; };
+    // Click elsewhere closes
+    setTimeout(function(){ document.addEventListener('click', function close(ev){ if (!pop.contains(ev.target) && !ev.target.closest('.risk-pill')) { pop.remove(); document.removeEventListener('click', close); } }, true); }, 0);
+    toast('\u25cb Risk driver breakdown shown \u00b7 click a driver to adjust');
+    e.stopPropagation();
+  }, true);
+
+  // ---- SPICT items: toggle checked on click (intake scoring blocks) ----
+  document.addEventListener('click', function(e) {
+    var item = e.target.closest('.spict-item');
+    if (!item) return;
+    item.classList.toggle('checked');
+    toast(item.classList.contains('checked') ? '\u2713 SPICT indicator checked \u2014 score updated' : '\u2715 SPICT indicator unchecked \u2014 score lowered');
+    e.stopPropagation();
+  }, true);
+
+  // ---- Circle avatars: highlight the matching member card ----
+  document.addEventListener('click', function(e) {
+    var av = e.target.closest('.circle-avatar');
+    if (!av) return;
+    var prev = document.querySelectorAll('.qr-member.flash');
+    prev.forEach(function(m){ m.style.boxShadow=''; });
+    // find matching member by initial or just flash the first pending
+    var members = Array.from(document.querySelectorAll('.qr-member'));
+    var match = members.find(function(m){
+      var nm = m.querySelector('.qrm-name');
+      if (!nm) return false;
+      var ini = nm.textContent.replace(/[^A-Za-z]/g,'').slice(0,2).toUpperCase();
+      return ini === av.textContent.trim().toUpperCase().slice(0,2);
+    }) || members[0];
+    if (match) {
+      match.style.boxShadow = '0 0 0 2px var(--brand), 0 4px 14px rgba(59,130,246,.3)';
+      match.style.transition = 'box-shadow .3s';
+      match.scrollIntoView({ behavior:'smooth', block:'center' });
+      setTimeout(function(){ match.style.boxShadow=''; }, 1800);
+      toast('\u2b55 ' + (match.querySelector('.qrm-name')?.textContent || 'member') + ' highlighted in circle');
+    }
+    e.stopPropagation();
+  }, true);
+
+  // CSS for new states (row-closed, confirm/disabled)
   var st = document.createElement('style');
   st.textContent = '.row-closed .pname strong{ text-decoration: line-through; color: var(--muted); } ' +
     '.due-tag.closed{ background: var(--green-bg); color: var(--green); } ' +
