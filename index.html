@@ -613,6 +613,17 @@
   @media(max-width:760px){.sidebar{background:linear-gradient(180deg,#004b8b,#07365f)}}
 
   /* ========== Voice Populate (conversation mode) ========== */
+  .voice-rec .rec-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:.3rem;vertical-align:middle}
+  .voice-rec.recording .rec-dot{background:var(--red);animation:pulse-rec 1.2s infinite}
+  @keyframes pulse-rec{0%,100%{opacity:1}50%{opacity:.3}}
+  .voice-rec-status{font-size:.75rem;font-weight:600;padding:.2rem .6rem;border-radius:999px}
+  .voice-rec-status.idle{background:var(--soft);color:var(--muted)}
+  .voice-rec-status.recording{background:var(--red-bg);color:var(--red)}
+  .voice-rec-status.paused{background:var(--amber-bg);color:var(--amber)}
+  #voiceToggleBtn.recording{background:var(--red)}
+  #voiceToggleBtn.recording span{display:none}
+  #voiceToggleBtn .rec-label{display:none}
+  #voiceToggleBtn.recording .rec-label{display:inline}
   .voice-mode{background:linear-gradient(135deg,#f0fdfa,#ecfdf5);border:2px solid var(--brand);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
   .voice-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
   .voice-rec{width:44px;height:44px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;font-size:1.1rem;box-shadow:0 0 0 4px var(--red-bg)}
@@ -1036,6 +1047,44 @@
         </div>
 
         <div id="priorityList"></div>
+
+        <!-- P2: Today's Plan -->
+        <div class="card" id="todaysPlanCard" style="border-left:4px solid var(--brand)">
+          <div class="card-title">
+            <div>
+              <h3 style="font-size:.9rem">📋 Today's Plan</h3>
+              <small>5 patients · 3 voice visits · 1 navigator handoff · 1 QR update</small>
+            </div>
+            <span class="tag" style="background:var(--green-bg);color:var(--green)">On track</span>
+          </div>
+          <div style="display:grid;gap:.4rem">
+            <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px">
+              <span style="font-weight:600;font-size:.82rem;flex:1">Margaret J · Voice visit</span>
+              <span style="font-size:.7rem;color:var(--muted)">9:00 AM</span>
+              <span class="tag" style="background:var(--blue-bg);color:var(--blue);font-size:.65rem">voice</span>
+            </div>
+            <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px">
+              <span style="font-weight:600;font-size:.82rem;flex:1">John Karras · Navigator handoff</span>
+              <span style="font-size:.7rem;color:var(--muted)">11:00 AM</span>
+              <span class="tag" style="background:var(--amber-bg);color:var(--amber);font-size:.65rem">gap</span>
+            </div>
+            <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px">
+              <span style="font-weight:600;font-size:.82rem;flex:1">Rita Feldman · QR update</span>
+              <span style="font-size:.7rem;color:var(--muted)">1:00 PM</span>
+              <span class="tag" style="background:var(--green-bg);color:var(--green);font-size:.65rem">qr</span>
+            </div>
+            <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px">
+              <span style="font-weight:600;font-size:.82rem;flex:1">Patricia W · Voice visit</span>
+              <span style="font-size:.7rem;color:var(--muted)">3:00 PM</span>
+              <span class="tag" style="background:var(--blue-bg);color:var(--blue);font-size:.65rem">voice</span>
+            </div>
+            <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px">
+              <span style="font-weight:600;font-size:.82rem;flex:1">Douglas H · Check-in call</span>
+              <span style="font-size:.7rem;color:var(--muted)">4:30 PM</span>
+              <span class="tag" style="background:var(--purple-bg);color:var(--purple);font-size:.65rem">check</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="grid-2-1">
@@ -1048,6 +1097,7 @@
             <div class="button-row">
               <span id="selectedRisk" class="risk-pill high clickable">High</span>
               <button class="ghost-button compact-button" id="openCarePlanBtn">Open care plan →</button>
+              <button class="primary-button compact-button" id="startVisitBtn" style="background:var(--brand)">▶ Start Visit</button>
             </div>
           </div>
 
@@ -6104,12 +6154,15 @@ function renderVoicePanel(patient) {
   return `
     <div class="voice-mode">
       <div class="voice-header">
-        <div class="voice-rec" id="voiceRecBtn" title="Toggle recording">⏺</div>
+        <div class="voice-rec" id="voiceRecBtn" title="Toggle recording"><span class="rec-dot"></span>🎙</div>
         <div class="voice-meta">
           <strong>Conversation Mode</strong>
           CM: Maria Okafor · Patient: ${p.name} · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
         </div>
-        <button class="ghost-button compact-button" style="margin-left:auto" onclick="document.getElementById('voiceRecBtn').classList.toggle('recording')">▶ Start / ⏸ Pause</button>
+        <div style="margin-left:auto;display:flex;gap:.5rem;align-items:center">
+          <span id="voiceRecStatus" class="voice-rec-status idle">Ready</span>
+          <button class="primary-button compact-button" id="voiceToggleBtn">🎙 Start Recording</button>
+        </div>
       </div>
       <div class="voice-transcript">
         ${voiceDemo.transcript.map(t => `<p><span class="v-speaker">${t.speaker}:</span> ${t.text.split(/(Dr\.|the|I|you|and|that|it|my|who|what)/g).map(w => t.text.includes(w) && ['Dr. Chen','Dr. Patel','hospice','PSW','Ontario Health','CHATS','Rebecca','Karen'].some(k => w.includes(k)) ? `<span class="v-extract">${w}</span>` : w).join('')}</p>`).join('')}
@@ -6247,10 +6300,11 @@ function renderQrHub(patientId) {
         <div class="qr-code-box" data-qr="southlake-care-margaret" data-qr-size="100" data-qrsim="true">
           <span>▣</span>
         </div>
-        <div class="qr-hub-title">
+        <div class="qr-hub-title" style="flex:1">
           Care Circle QR Connection Hub
           <small>Generated from confirmed care plan · Consent-based · PHIPA-compliant</small>
         </div>
+        <button class="ghost-button compact-button" id="printQrBtn" style="white-space:nowrap">🖨 Print QR card for patient</button>
       </div>
       <div class="qr-hub-stats">
         <div class="qr-stat"><strong>${connectedCount}</strong><span>QR Connected</span></div>
@@ -7405,5 +7459,113 @@ function generateQRGrid(seed, size = 7) {
 })();
 </script>
 
+
+<script>
+(function() {
+  'use strict';
+
+  // P0: Start Visit button → navigate to care circle + open voice tab
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#startVisitBtn');
+    if (!btn) return;
+    // Navigate to care circle view
+    var ccBtn = document.querySelector('[data-view="careCircleView"], [data-view-target="careCircleView"]');
+    if (ccBtn) ccBtn.click();
+    setTimeout(function() {
+      var voiceTab = document.querySelector('[data-circle-tab="voice"]');
+      if (voiceTab) voiceTab.click();
+      showToast('▶ Voice visit started for ' + (document.querySelector('#selectedPatientTitle')?.textContent || 'patient'));
+    }, 300);
+  });
+
+  // P1: Voice recording toggle
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#voiceToggleBtn');
+    if (!btn) return;
+    var status = document.getElementById('voiceRecStatus');
+    var recBtn = document.getElementById('voiceRecBtn');
+    var isRecording = btn.classList.toggle('recording');
+    if (isRecording) {
+      btn.innerHTML = '⏸ Stop Recording';
+      if (status) { status.textContent = '● Recording...'; status.className = 'voice-rec-status recording'; }
+      if (recBtn) recBtn.classList.add('recording');
+      showToast('🎙 Recording started. Speak naturally — system extracts in real-time.');
+    } else {
+      btn.innerHTML = '<span class="rec-label">🎙 </span>Start Recording';
+      if (status) { status.textContent = 'Ready'; status.className = 'voice-rec-status idle'; }
+      if (recBtn) recBtn.classList.remove('recording');
+      showToast('⏸ Recording stopped. 6 items extracted — review below.');
+    }
+  });
+
+  // P1: Print QR card
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#printQrBtn');
+    if (!btn) return;
+    // Show a toast + simulate print
+    var qrCard = document.querySelector('.qr-hub');
+    if (qrCard) {
+      // Create a print-friendly popup
+      var w = window.open('', '_blank');
+      if (w) {
+        var html = '<html><head><title>QR Card — Patient</title><style>body{font-family:sans-serif;padding:2rem;max-width:500px;margin:auto}h1{font-size:1.2rem}table{width:100%;border-collapse:collapse;margin:1rem 0}td{padding:.4rem .6rem;border-bottom:1px solid #ddd;font-size:.9rem}td:first-child{font-weight:600;width:120px;color:#666}.qr-box{width:200px;height:200px;margin:1rem auto;border:4px solid #047c7a;padding:8px}.qr-box canvas{width:100%;height:100%}@media print{.no-print{display:none}}</style></head><body>';
+        html += '<h1>📋 Care Circle QR Card</h1>';
+        html += '<p class="no-print" style="color:#666">Print this card. Patient shows QR at any provider visit. Provider scans → CC notes to CM.</p>';
+        html += '<div class="qr-box" id="printQr"></div>';
+        html += '<table>';
+        html += '<tr><td>Patient</td><td><strong>Margaret J.</strong></td></tr>';
+        html += '<tr><td>Care Manager</td><td>Maria Okafor, RN</td></tr>';
+        html += '<tr><td>Direct line</td><td>(905) 555-0142</td></tr>';
+        html += '<tr><td>Organization</td><td>Southlake FHT · Georgina</td></tr>';
+        html += '<tr><td>Consent</td><td style="color:green">✓ Active</td></tr>';
+        html += '<tr><td>Circle size</td><td>9 providers + 1 family</td></tr></table>';
+        html += '<p style="font-size:.8rem;color:#666;margin-top:1rem">Instructions: At your next provider visit, show this QR code on your phone. The provider will scan it and CC their consult notes to your Care Manager. You do NOT need to do anything else.</p>';
+        html += '</body></html>';
+        w.document.write(html);
+        w.document.close();
+        // Render QR into the print window
+        setTimeout(function() {
+          try {
+            var qr = qrcode(0, 'M');
+            qr.addData(JSON.stringify({patient:'Margaret J.',cm:'Maria Okafor, RN',org:'Southlake FHT',contact:'m.okafor.circ@southlake.example',consent:'active',circle:9}));
+            qr.make();
+            var canvas = document.createElement('canvas');
+            var count = qr.getModuleCount();
+            var cell = Math.floor(180 / (count + 4));
+            var total = cell * (count + 4);
+            canvas.width = total; canvas.height = total;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff'; ctx.fillRect(0,0,total,total);
+            ctx.fillStyle = '#000';
+            var off = 2*cell;
+            for(var r=0;r<count;r++) for(var c=0;c<count;c++) if(qr.isDark(r,c)) ctx.fillRect(off+c*cell,off+r*cell,cell,cell);
+            var box = w.document.getElementById('printQr');
+            if(box) box.appendChild(canvas);
+            w.print();
+          } catch(e2) {
+            // Fallback: just show the data
+            var box = w.document.getElementById('printQr');
+            if(box) box.innerHTML = '<p style="font-size:.8rem;text-align:center">Scan data: southlake-care-margaret-j</p>';
+          }
+        }, 200);
+      } else {
+        showToast('🖨 Print dialog blocked by browser. Allow popups for this site.');
+      }
+    }
+  });
+
+  // P2: Today's plan rows are clickable
+  document.addEventListener('click', function(e) {
+    var row = e.target.closest('.tp-row');
+    if (!row) return;
+    var name = row.querySelector('span')?.textContent || '';
+    showToast('Selected: ' + name);
+    // Navigate to care circle
+    var ccBtn = document.querySelector('[data-view="careCircleView"], [data-view-target="careCircleView"]');
+    if (ccBtn) ccBtn.click();
+  });
+
+})();
+</script>
 </body>
 </html>
