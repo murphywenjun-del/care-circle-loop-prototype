@@ -862,6 +862,30 @@
   .scroll-hint .sh-arrow{display:inline-block;animation:bounce-down 1.5s infinite}
   @keyframes bounce-down{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 
+
+  /* ========== EASE OF USE: COLLAPSIBLE + QUICK ACTIONS ========== */
+  .collapsible{border:1px solid var(--line);border-radius:12px;margin-bottom:1rem;overflow:hidden}
+  .collapsible-header{display:flex;align-items:center;gap:.7rem;padding:.8rem 1.2rem;cursor:pointer;background:var(--soft);user-select:none}
+  .collapsible-header:hover{background:#e8f4fd}
+  .collapsible-header .ch-icon{width:36px;height:36px;border-radius:8px;background:var(--brand-soft);display:grid;place-items:center;font-size:1rem;flex-shrink:0}
+  .collapsible-header .ch-title{font-weight:700;font-size:.9rem}
+  .collapsible-header .ch-sub{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+  .collapsible-header .ch-toggle{margin-left:auto;font-size:.7rem;color:var(--muted);transition:transform .2s}
+  .collapsible-header .ch-toggle.open{transform:rotate(180deg)}
+  .collapsible-header .ch-stat{background:var(--brand);color:#fff;border-radius:999px;padding:.15rem .6rem;font-size:.72rem;font-weight:700}
+  .collapsible-body{display:none;padding:1rem 1.2rem}
+  .collapsible-body.open{display:block}
+  
+  /* Quick actions strip */
+  .quick-actions{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+  .quick-action{display:flex;align-items:center;gap:.5rem;background:#fff;border:2px solid var(--brand);border-radius:10px;padding:.6rem 1rem;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s}
+  .quick-action:hover{background:var(--brand-soft);border-color:var(--brand-2);transform:translateY(-1px)}
+  .quick-action .qa-icon{font-size:1.1rem}
+  .quick-action.primary{background:var(--brand);color:#fff;border-color:var(--brand-2)}
+  .quick-action.primary:hover{background:var(--brand-2)}
+  .quick-action .qa-badge{background:rgba(255,255,255,.25);border-radius:4px;padding:.1rem .35rem;font-size:.65rem;font-weight:700}
+  .quick-action:not(.primary) .qa-badge{background:var(--amber-bg);color:var(--amber)}
+
 </style>
 </head>
 <body>
@@ -4673,6 +4697,108 @@ document.addEventListener('click', function(e) {
     showToast('QR sent to ' + name + '. They will be notified and can scan to connect.');
   }
 });
+
+
+/* ========== EASE OF USE: RESTRUCTURE ========== */
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    const panel = document.getElementById('circleFeaturePanel');
+    if (!panel) return;
+    
+    // A. Wrap QR Hub in a collapsible (default closed, shows summary)
+    const qrHub = panel.querySelector('.qr-hub');
+    if (qrHub) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'collapsible';
+      wrapper.id = 'qrCollapsible';
+      
+      // Summary: extract the stats
+      const stats = qrHub.querySelectorAll('.qr-stat strong');
+      const connected = stats[0]?.textContent || '4';
+      const pending = stats[1]?.textContent || '5';
+      
+      wrapper.innerHTML = `
+        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+          <div class="ch-icon">▣</div>
+          <div>
+            <div class="ch-title">QR Connection Hub</div>
+            <div class="ch-sub">${connected} connected · ${pending} pending · 3 notes CC'd this month</div>
+          </div>
+          <span class="ch-stat">${connected}/9</span>
+          <span class="ch-toggle">▼</span>
+        </div>
+        <div class="collapsible-body">
+          ${qrHub.innerHTML}
+        </div>
+      `;
+      qrHub.replaceWith(wrapper);
+      
+      // Remove the scroll hint from inside (not needed when collapsed)
+      const hint = wrapper.querySelector('.scroll-hint');
+      if (hint) hint.remove();
+    }
+    
+    // B. Add Quick Actions strip at top of panel
+    const qa = document.createElement('div');
+    qa.className = 'quick-actions';
+    qa.innerHTML = `
+      <button class="quick-action primary" onclick="document.querySelector('[data-circle-tab=\"voice\"]').click()">
+        <span class="qa-icon">🎙</span> Voice Populate <span class="qa-badge">primary</span>
+      </button>
+      <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\"consent\"]').click()">
+        <span class="qa-icon">✓</span> Consent
+      </button>
+      <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\"patient-control\"]').click()">
+        <span class="qa-icon">📱</span> Patient View
+      </button>
+      <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\"navigator\"]').click()">
+        <span class="qa-icon">↔</span> Navigator
+      </button>
+      <button class="quick-action" onclick="toggleCollapsible(document.querySelector('#qrCollapsible .collapsible-header'))">
+        <span class="qa-icon">▣</span> QR Hub <span class="qa-badge">4/9</span>
+      </button>
+    `;
+    panel.insertBefore(qa, panel.firstChild);
+    
+    // C. Hide Before/After by default (only show in tour)
+    const ba = document.getElementById('beforeAfterSection');
+    if (ba) ba.style.display = 'none';
+    
+    // D. Wrap Provider inbox + effort in a sub-collapse within QR hub
+    const collapsibleBody = wrapper.querySelector('.collapsible-body');
+    if (collapsibleBody) {
+      const providerInbox = collapsibleBody.querySelector('.provider-inbox');
+      const providerEffort = collapsibleBody.querySelector('.provider-effort');
+      if (providerInbox && providerEffort) {
+        const details = document.createElement('details');
+        details.style.marginTop = '1rem';
+        details.innerHTML = `<summary style="cursor:pointer;font-size:.82rem;font-weight:600;color:var(--muted)">📥 Provider perspective & loop closure (click to expand)</summary>`;
+        details.appendChild(providerEffort);
+        details.appendChild(providerInbox);
+        // Remove original elements, insert details in their place
+        const parent = providerEffort.parentElement;
+        providerEffort.remove();
+        providerInbox.remove();
+        parent.appendChild(details);
+      }
+    }
+    
+    // E. Make Voice Populate the DEFAULT active tab
+    const voiceTab = document.querySelector('[data-circle-tab="voice"]');
+    if (voiceTab) {
+      // Click it after a beat to render
+      setTimeout(() => voiceTab.click(), 500);
+    }
+  }, 1000);
+});
+
+function toggleCollapsible(header) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.ch-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+  toggle.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
 
 </script>
 </body>
