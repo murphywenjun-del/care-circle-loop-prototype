@@ -887,28 +887,33 @@
   .quick-action:not(.primary) .qa-badge{background:var(--amber-bg);color:var(--amber)}
 
 
-  /* ========== REAL QR CODE + INTERACTIVE BUTTONS ========== */
-  .qr-svg-container{width:100px;height:100px;background:#fff;border:4px solid #1e293b;border-radius:6px;padding:6px;margin:0 auto;cursor:pointer;transition:transform .15s}
-  .qr-svg-container:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(0,0,0,.15)}
-  .qr-svg-container svg{width:100%;height:100%}
-  .qr-scan-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+  /* ========== SIMULATED QR CODE ========== */
+  .qr-sim{width:120px;height:120px;background:#fff;border:3px solid #1e293b;border-radius:6px;padding:8px;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:1px}
+  .qr-sim .qr-cell{background:#1e293b;border-radius:1px}
+  .qr-sim .qr-cell.w{background:#fff}
+  .qr-sim .qr-corner{width:100%;height:100%;background:#1e293b;border-radius:2px;position:relative}
+  .qr-sim .qr-corner::after{content:'';position:absolute;inset:20%;background:#fff;border-radius:1px}
+  .qr-sim .qr-corner::before{content:'';position:absolute;inset:40%;background:#1e293b;border-radius:1px}
+  
+  /* QR scan overlay */
+  .qr-scan-overlay{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
   .qr-scan-overlay.active{display:flex}
-  .qr-scan-card{background:#fff;border-radius:16px;padding:2rem;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-  .qr-scan-card h3{margin:0 0 .3rem;font-size:1.1rem}
-  .qr-scan-card .qsc-sub{font-size:.78rem;color:var(--muted);margin-bottom:1rem}
-  .qr-scan-card .qsc-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px}
-  .qr-scan-card .qsc-icon{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);display:grid;place-items:center;font-size:.9rem;flex-shrink:0}
-  .qr-scan-card .qsc-label{font-size:.75rem;color:var(--muted)}
-  .qr-scan-card .qsc-value{font-weight:600;font-size:.85rem}
-  .qr-scan-card .qsc-consent{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:.6rem;margin-top:.8rem;font-size:.78rem;color:#065f46}
-  .qr-scan-card .qsc-consent strong{display:block;margin-bottom:.2rem}
-  .qr-scan-card .qsc-cc{background:var(--soft);border-radius:8px;padding:.5rem .7rem;margin-top:.6rem;font-size:.78rem}
-  .qr-scan-card .qsc-cc code{background:var(--brand-soft);padding:.15rem .4rem;border-radius:4px;font-size:.72rem}
-  .qr-scan-card .qsc-btn{width:100%;margin-top:1rem;background:var(--brand);color:#fff;border:none;border-radius:8px;padding:.7rem;font-weight:700;font-size:.88rem;cursor:pointer}
-  .qr-scan-card .qsc-close{width:100%;margin-top:.5rem;background:#f1f5f9;color:var(--muted);border:none;border-radius:8px;padding:.5rem;font-size:.78rem;cursor:pointer}
-  button:active,.quick-action:active,.circle-tab:active{transform:scale(.97)}
-  .quick-action.primary:hover{box-shadow:0 4px 16px rgba(37,99,235,.3)}
-  .primary-button:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .qr-scan-frame{position:relative;width:280px;height:280px;border:4px solid #3b82f6;border-radius:16px;overflow:hidden}
+  .qr-scan-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#3b82f6,transparent);animation:scan-line 1.5s infinite}
+  @keyframes scan-line{0%{top:0}50%{top:calc(100% - 4px)}100%{top:0}}
+  .qr-scan-result{background:#fff;border-radius:12px;padding:1.2rem;text-align:center;margin-top:1rem;max-width:320px}
+  .qr-scan-result h3{margin:0 0 .5rem;font-size:1rem;color:#1e40af}
+  .qr-scan-result p{font-size:.82rem;color:#475569;margin:0 0 .5rem;line-height:1.5}
+  .qr-scan-result .qsr-action{background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:.6rem 1.2rem;font-weight:700;cursor:pointer;margin-top:.5rem}
+  .qr-scan-result .qsr-close{background:transparent;border:1px solid #e2e8f0;border-radius:8px;padding:.4rem 1rem;font-size:.78rem;cursor:pointer;margin-top:.5rem}
+  
+  /* Interactive buttons - all clickable */
+  .btn-clickable{cursor:pointer;transition:all .15s;position:relative}
+  .btn-clickable:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .btn-clickable:active{transform:translateY(0);box-shadow:none}
+  
+  /* Toast improvement */
+  #toast{transition:all .3s ease}
 
 </style>
 </head>
@@ -4825,153 +4830,107 @@ function toggleCollapsible(header) {
 }
 
 
-/* ========== REAL QR CODE SVG + SCAN SIMULATION + INTERACTIVE BUTTONS ========== */
+/* ========== QR CODE SIMULATION + SCAN OVERLAY ========== */
 
-function generateQRCodeSVG(seed, size) {
-  size = size || 100;
-  var h = 0;
-  for (var i = 0; i < seed.length; i++) { h = ((h << 5) - h + seed.charCodeAt(i)) | 0; }
-  function rand() { h = (h * 1103515245 + 12345) & 0x7fffffff; return h / 0x7fffffff; }
-  var cellSize = size / 21;
-  var rects = '';
-  
-  function drawFinder(sx, sy) {
-    for (var x = 0; x < 7; x++) for (var y = 0; y < 7; y++) {
-      var isBorder = (x === 0 || x === 6 || y === 0 || y === 6);
-      var isCenter = (x >= 2 && x <= 4 && y >= 2 && y <= 4);
-      if (isBorder || isCenter) {
-        rects += '<rect x="' + ((sx+x)*cellSize) + '" y="' + ((sy+y)*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
+// Replace static ▣ with CSS QR grid
+function generateQRGrid(seed, size = 7) {
+  // Simple deterministic pattern based on seed string
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+  let cells = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      // Corner patterns (finder patterns)
+      const isTL = r < 3 && c < 3;
+      const isTR = r < 3 && c >= size - 3;
+      const isBL = r >= size - 3 && c < 3;
+      const isCorner = isTL || isTR || isBL;
+      
+      if (isCorner) {
+        // Finder pattern
+        const lr = isTL ? r : isTR ? r : r - (size - 3);
+        const lc = isTL ? c : isTR ? c - (size - 3) : c;
+        const border = lr === 0 || lc === 0 || lr === 2 || lc === 2;
+        const center = lr === 1 && lc === 1;
+        const w = (border && !center) || (!border && center && (lr === 1 && lc === 1));
+        cells += w ? '<div class="qr-corner"></div>' : '<div class="qr-cell w"></div>';
+      } else {
+        // Data cells - deterministic from hash
+        const val = (hash * (r * size + c + 1) * 7919) & 1;
+        cells += val ? '<div class="qr-cell"></div>' : '<div class="qr-cell w"></div>';
       }
     }
   }
-  drawFinder(0, 0);
-  drawFinder(14, 0);
-  drawFinder(0, 14);
-  
-  for (var t = 8; t < 13; t++) {
-    if (t % 2 === 0) {
-      rects += '<rect x="' + (t*cellSize) + '" y="' + (6*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
-      rects += '<rect x="' + (6*cellSize) + '" y="' + (t*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
-    }
-  }
-  
-  for (var x2 = 0; x2 < 21; x2++) for (var y2 = 0; y2 < 21; y2++) {
-    var inFinder = (x2 < 8 && y2 < 8) || (x2 > 12 && y2 < 8) || (x2 < 8 && y2 > 12);
-    var inTiming = (x2 === 6 || y2 === 6);
-    if (!inFinder && !inTiming) {
-      if (rand() > 0.45) {
-        rects += '<rect x="' + (x2*cellSize) + '" y="' + (y2*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
-      }
-    }
-  }
-  
-  var html = '<div class="qr-svg-container" title="Click to simulate scan">' +
-    '<svg viewBox="0 0 ' + size + ' ' + size + '" xmlns="http://www.w3.org/2000/svg" style="background:#fff">' + 
-    rects + '</svg></div>';
-  return html;
+  return cells;
 }
 
-function showQRScanOverlay(patientName, cmName) {
-  var existing = document.getElementById('qrScanOverlay');
-  if (existing) existing.remove();
-  
-  var div = document.createElement('div');
-  div.id = 'qrScanOverlay';
-  div.className = 'qr-scan-overlay';
-  var html = '<div class="qr-scan-card">';
-  html += '<h3>\uD83D\uDCF1 Provider Scan View</h3>';
-  html += '<div class="qsc-sub">You scanned this QR code at a provider visit</div>';
-  html += '<div class="qsc-row"><div class="qsc-icon">\uD83D\uDC64</div><div><div class="qsc-label">Patient</div><div class="qsc-value">' + patientName + '</div></div></div>';
-  html += '<div class="qsc-row"><div class="qsc-icon">\uD83C\uDFE5</div><div><div class="qsc-label">Care Manager</div><div class="qsc-value">' + cmName + '</div></div></div>';
-  html += '<div class="qsc-row"><div class="qsc-icon">\uD83D\uDCDE</div><div><div class="qsc-label">Contact</div><div class="qsc-value">(905) 555-0142</div></div></div>';
-  html += '<div class="qsc-consent"><strong>\u2713 Consent on file</strong>';
-  html += 'Patient has authorized basic care coordination info sharing with scanning providers. This does NOT grant access to full medical records.</div>';
-  html += '<div class="qsc-cc"><strong>CC your consult notes to:</strong><br><code>m.okafor.circ@southlake.example</code></div>';
-  html += '<button class="qsc-btn" id="qscConnectBtn">\u2713 I acknowledge \u00B7 Connect to care circle</button>';
-  html += '<button class="qsc-close" id="qscDismissBtn">Dismiss without connecting</button>';
-  html += '</div>';
-  div.innerHTML = html;
-  document.body.appendChild(div);
-  requestAnimationFrame(function() { div.classList.add('active'); });
-  
-  document.getElementById('qscConnectBtn').onclick = function() {
-    div.classList.remove('active');
-    setTimeout(function() { div.remove(); }, 300);
-    showToast('\u2713 Connected: QR-linked to ' + patientName + ' care circle. CM notified.');
-  };
-  document.getElementById('qscDismissBtn').onclick = function() {
-    div.classList.remove('active');
-    setTimeout(function() { div.remove(); }, 300);
-  };
-}
-
+// Replace all ▣ QR boxes with CSS grids
 document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    // Replace all QR placeholders with real SVG
-    document.querySelectorAll('.qr-code-box, .pqqr').forEach(function(el) {
-      var text = el.textContent.trim();
-      if (text === '\u25A3' || text === '▣') {
-        el.innerHTML = generateQRCodeSVG('southlake', 88);
-        var qrDiv = el.querySelector('.qr-svg-container');
-        if (qrDiv) qrDiv.addEventListener('click', function() { showQRScanOverlay('Margaret Wilson', 'Maria Okafor'); });
+  setTimeout(() => {
+    document.querySelectorAll('.qr-code-box, .pqqr, .qr-code-box').forEach(box => {
+      if (box.textContent.trim() === '▣' || box.textContent.trim() === '📱') {
+        const seed = (box.closest('.phone-qr-card')?.querySelector('.pqqr-label')?.textContent || 
+                      box.closest('.qr-hub')?.querySelector('.qr-hub-title')?.textContent || 
+                      'care-circle').replace(/\s+/g, '');
+        box.innerHTML = '<div class="qr-sim">' + generateQRGrid(seed) + '</div>';
+        box.style.width = '120px';
+        box.style.height = '120px';
+        box.style.padding = '8px';
+        box.style.background = '#fff';
+        box.style.borderRadius = '6px';
+        box.style.border = '3px solid #1e293b';
+        box.style.display = 'grid';
+        box.style.placeItems = 'center';
       }
     });
     
-    // Phone mockup QR
-    document.querySelectorAll('.phone-qr-card .qr-svg-container, .phone-qr-card .pqqr').forEach(function(el) {
-      el.addEventListener('click', function() { showQRScanOverlay('Margaret Wilson', 'Maria Okafor'); });
-    });
+    // Add QR scan overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'qr-scan-overlay';
+    overlay.id = 'qrScanOverlay';
+    overlay.innerHTML = `
+      <div style="text-align:center">
+        <div class="qr-scan-frame">
+          <div class="qr-sim" style="width:200px;height:200px;margin:40px auto;background:#fff;padding:12px;gap:2px">
+            ${generateQRGrid('southlake-margaret-jk-0471', 9)}
+          </div>
+        </div>
+        <div class="qr-scan-result" style="margin-top:1.5rem">
+          <h3>✓ QR Scanned</h3>
+          <p><strong>Patient:</strong> Margaret J. (anonymized)</p>
+          <p><strong>Care Manager:</strong> Maria Okafor, RN<br>Southlake FHT · Georgina<br>(905) 555-0142 · m.okafor.circ@southlake.example</p>
+          <p style="background:#f0fdf4;padding:.4rem .6rem;border-radius:6px;border:1px solid #86efac;color:#065f46"><strong>✓ Consent active</strong> — Patient has authorized basic care coordination info sharing</p>
+          <p style="font-size:.75rem;color:#64748b;margin-top:.5rem">CC your consult notes to: m.okafor.circ@southlake.example<br>Total effort: ~10 seconds · No new system needed</p>
+          <button class="qsr-action" onclick="document.getElementById('qrScanOverlay').classList.remove('active');showToast('You are now QR-connected to Margaret\'s care circle. CM notified.')">I'm connected — CC to CM</button>
+          <button class="qsr-close" onclick="document.getElementById('qrScanOverlay').classList.remove('active')">Close</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
     
-    // .pqqr-share buttons
-    document.querySelectorAll('.pqqr-share').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        showQRScanOverlay('Margaret Wilson', 'Maria Okafor');
-      });
-    });
-    
-    // Circle tabs: toast feedback
-    document.querySelectorAll('.circle-tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        var label = tab.textContent.trim();
-        if (label && label !== 'Care Circle') showToast('View: ' + label);
-      });
-    });
-    
-    // Consent toggles
-    document.querySelectorAll('.a-toggle').forEach(function(toggle) {
-      toggle.addEventListener('click', function() {
-        toggle.classList.toggle('off');
-        var item = toggle.closest('.access-item');
-        var nameEl = item ? item.querySelector('.a-name') : null;
-        var name = nameEl ? nameEl.textContent : 'Provider';
-        showToast(toggle.classList.contains('off') ? name + ': access revoked' : name + ': access restored');
-      });
-    });
-    
-    // Patient permission checkboxes
-    document.querySelectorAll('.patient-perm-item input, .phone-control-item input').forEach(function(cb) {
-      cb.addEventListener('change', function() {
-        var parent = cb.parentElement;
-        var label = parent ? parent.textContent.trim().substring(0, 50) : 'Preference';
-        showToast((cb.checked ? '\u2713 ' : '\u2717 ') + label);
-      });
-    });
-    
-    // All buttons: click feedback
-    document.querySelectorAll('.ghost-button, .primary-button, .compact-button, .quick-action, .voice-confirm-btn, .voice-discard-btn').forEach(function(btn) {
-      if (!btn.dataset.fb) {
-        btn.dataset.fb = '1';
-        btn.addEventListener('click', function() {
-          var label = btn.textContent.trim().substring(0, 50);
-          if (label && label.length > 2 && label !== '+' && label !== 'Sign out') {
-            showToast('"' + label + '"');
-          }
-        });
+    // Make "Show to Provider" button trigger the scan overlay
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.pqqr-share') || e.target.closest('.qr-code-box')) {
+        document.getElementById('qrScanOverlay').classList.add('active');
       }
-    });
+    }, true);
   }, 1500);
 });
+
+/* ========== INTERACTIVE: Make all buttons clickable with feedback ========== */
+document.addEventListener('click', function(e) {
+  // Any button that doesn't have specific onclick handling gets a generic toast
+  const btn = e.target.closest('button');
+  if (btn && !btn.onclick && !btn.closest('#qrScanOverlay') && !btn.closest('.voice-actions')) {
+    const label = btn.textContent.trim().replace(/\s+/g, ' ').substring(0, 40);
+    if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn')) {
+      e.preventDefault();
+      showToast('"' + label + '" — action triggered (demo)');
+    }
+  }
+}, true);
 
 </script>
 </body>
