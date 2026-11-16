@@ -7464,18 +7464,55 @@ function generateQRGrid(seed, size = 7) {
 (function() {
   'use strict';
 
-  // P0: Start Visit button → navigate to care circle + open voice tab
+  // P0: Start Visit → INLINE voice panel in worklist (no navigation)
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('#startVisitBtn');
     if (!btn) return;
-    // Navigate to care circle view
-    var ccBtn = document.querySelector('[data-view="careCircleView"], [data-view-target="careCircleView"]');
-    if (ccBtn) ccBtn.click();
-    setTimeout(function() {
-      var voiceTab = document.querySelector('[data-circle-tab="voice"]');
-      if (voiceTab) voiceTab.click();
-      showToast('▶ Voice visit started for ' + (document.querySelector('#selectedPatientTitle')?.textContent || 'patient'));
-    }, 300);
+    var existing = document.getElementById('inlineVoicePanel');
+    if (existing) { existing.remove(); btn.textContent = '▶ Start Visit'; return; }
+    // Get selected patient name
+    var nameEl = document.getElementById('selectedPatientTitle');
+    var pName = nameEl ? nameEl.textContent.trim() : 'patient';
+    var host = btn.closest('.card');
+    if (!host) return;
+    var panel = document.createElement('div');
+    panel.id = 'inlineVoicePanel';
+    panel.style.cssText = 'margin-top:1rem;padding:1rem;background:var(--soft);border:2px solid var(--brand);border-radius:10px';
+    panel.innerHTML = '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem"><span style="font-size:1.2rem">🎙</span><div style="flex:1"><strong style="font-size:.85rem">Voice Visit — ' + pName + '</strong><br><small style="color:var(--muted)">Speak naturally. System extracts in real-time. You just confirm.</small></div><button id="ivToggle" class="primary-button compact-button" style="white-space:nowrap">🎙 Start</button></div><div id="ivStatus" style="font-size:.75rem;padding:.25rem .6rem;border-radius:999px;background:var(--soft);display:inline-block;margin-bottom:.5rem">Ready — click Start when you call the patient</div><div style="display:grid;gap:.35rem;margin:.5rem 0"><div style="padding:.4rem .6rem;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:.8rem"><strong>Extracted:</strong> Dr. Chen (PCP) — confirmed</div><div style="padding:.4rem .6rem;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:.8rem"><strong>Extracted:</strong> Dr. Patel (Onc) — confirmed</div><div style="padding:.4rem .6rem;background:#fff;border:1px dashed var(--amber);border-radius:6px;font-size:.8rem"><strong style="color:var(--amber)">Needs confirm:</strong> Hospice team — "maybe" mentioned</div></div><div style="display:flex;gap:.5rem;margin-top:.6rem"><button id="ivConfirm" class="primary-button compact-button" style="background:var(--green)">✓ Confirm all 3</button><button id="ivDiscard" class="ghost-button compact-button">Discard</button></div>';
+    host.appendChild(panel);
+    btn.textContent = '✕ Close voice';
+    btn.classList.remove('primary-button');
+    btn.classList.add('ghost-button');
+    // Toggle recording
+    panel.querySelector('#ivToggle').addEventListener('click', function() {
+      var st = panel.querySelector('#ivStatus');
+      var rec = this.classList.toggle('recording');
+      if (rec) {
+        this.textContent = '⏸ Stop';
+        this.style.background = 'var(--red)';
+        st.textContent = '● Recording... speak naturally';
+        st.style.background = 'var(--red-bg)';
+        st.style.color = 'var(--red)';
+        showToast('🎙 Recording. System extracting...');
+      } else {
+        this.textContent = '🎙 Start';
+        this.style.background = '';
+        st.textContent = 'Stopped — 3 items extracted. Review below.';
+        st.style.background = 'var(--amber-bg)';
+        st.style.color = 'var(--amber)';
+      }
+    });
+    panel.querySelector('#ivConfirm').addEventListener('click', function() {
+      panel.innerHTML = '<div style="padding:.5rem 0"><span style="color:var(--green);font-weight:600">✓ 3 providers confirmed to ' + pName + "'s care circle</span><br><small style='color:var(--muted)'>Next: check QR status → print card if needed</small></div>";
+      showToast('✓ ' + pName + ': voice visit complete. Circle updated.');
+    });
+    panel.querySelector('#ivDiscard').addEventListener('click', function() {
+      panel.remove();
+      btn.textContent = '▶ Start Visit';
+      btn.classList.add('primary-button');
+      btn.classList.remove('ghost-button');
+      showToast('Extraction discarded. No changes.');
+    });
   });
 
   // P1: Voice recording toggle
@@ -7554,15 +7591,19 @@ function generateQRGrid(seed, size = 7) {
     }
   });
 
-  // P2: Today's plan rows are clickable
+  // P2: Today's plan rows → select corresponding worklist row (no navigation)
   document.addEventListener('click', function(e) {
     var row = e.target.closest('.tp-row');
     if (!row) return;
     var name = row.querySelector('span')?.textContent || '';
-    showToast('Selected: ' + name);
-    // Navigate to care circle
-    var ccBtn = document.querySelector('[data-view="careCircleView"], [data-view-target="careCircleView"]');
-    if (ccBtn) ccBtn.click();
+    // Highlight matching worklist row if exists
+    var rows = document.querySelectorAll('.worklist-row');
+    rows.forEach(function(r) {
+      r.classList.remove('selected');
+      if (r.textContent.includes(name.split('·')[0].trim())) r.classList.add('selected');
+    });
+    showToast('Selected: ' + name + ' — see below in worklist');
+    row.scrollIntoView({behavior:'smooth', block:'nearest'});
   });
 
 })();
