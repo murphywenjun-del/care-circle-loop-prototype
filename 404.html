@@ -3881,7 +3881,7 @@ function renderQrHub(patientId) {
               <div class="qrm-name">${m.name}</div>
               <div class="qrm-role">${m.connected ? 'Connected · ' + m.time : 'QR not yet shared'}</div>
             </div>
-            ${!m.connected ? '<button class="qrm-share" onclick="showToast('QR sent to ${m.name} via patient\'s preferred channel. You'll be notified when they scan.')">Share</button>' : ''}
+            ${!m.connected ? `<button class="qrm-share" data-share="${m.name}">Share</button>` : ''}
           </div>
         `).join('')}
       </div>
@@ -4662,6 +4662,16 @@ document.addEventListener('DOMContentLoaded', function() {
     hint.innerHTML = '<span class="sh-arrow">↓</span> Scroll: provider effort + loop closure below';
     qrHub.appendChild(hint);
   }, 3500);
+});
+
+
+/* QR Share button - event delegation */
+document.addEventListener('click', function(e) {
+  const shareBtn = e.target.closest('.qrm-share');
+  if (shareBtn) {
+    const name = shareBtn.getAttribute('data-share') || 'provider';
+    showToast('QR sent to ' + name + '. They will be notified and can scan to connect.');
+  }
 });
 
 </script>
