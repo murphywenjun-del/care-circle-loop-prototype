@@ -929,6 +929,12 @@
   /* Toast improvement */
   #toast{transition:all .3s ease}
 
+
+  /* Editable notes (AI draft → CM editable) */
+  [contenteditable="true"][data-note-edit]{position:relative}
+  [contenteditable="true"][data-note-edit]:hover{background:var(--amber-bg);border-radius:3px}
+  [contenteditable="true"][data-note-edit]:focus{background:#fffbeb;box-shadow:0 0 0 2px var(--amber);outline:none}
+  [contenteditable="true"][data-note-edit]:hover::after{content:"✎ edit";position:absolute;right:4px;top:2px;font-size:.6rem;color:var(--amber);font-weight:600}
 </style>
 </head>
 <body>
@@ -4799,7 +4805,7 @@ function renderSelected(){
   const whyId = "rec-"+p.id;
   $("#nextActionCard").innerHTML = `
     <strong>Recommended next step · ${p.owner} · due ${p.due} ${WHY_CLAIMS[whyId]?`<span class="why-chip" onclick="openWhyPop('${whyId}')">why?</span>`:""}</strong>
-    <p>${p.recommendation}</p>
+    <p contenteditable="true" style="outline:none;border-bottom:2px dashed var(--line);padding-bottom:.3rem;min-height:1.2rem;cursor:text" data-note-edit="true">${p.recommendation}</p>
     <div class="recommend-actions">
       <button class="primary-button compact-button" data-action="accept-rec">Accept (create task)</button>
       <button class="ghost-button compact-button" data-action="modify-rec">Modify</button>
@@ -6172,7 +6178,7 @@ function renderVoicePanel(patient) {
         ${voiceDemo.extracts.map(e => `
           <div class="voice-extract-item ${e.confidence === 'uncertain' ? 'uncertain' : ''}">
             <div class="ve-field">${e.field}</div>
-            <div class="ve-value">${e.value}</div>
+            <div class="ve-value" contenteditable="true" style="outline:none;border-bottom:1px dashed var(--line);min-height:1.2rem;cursor:text" data-note-edit="true">${e.value}<span class="edit-hint" style="font-size:.65rem;color:var(--muted);opacity:0;position:absolute;margin-left:.3rem">✎ click to edit</span></div>
             ${e.confidence === 'uncertain' ? '<span class="ve-flag">⚠ Needs CM confirmation</span>' : ''}
           </div>
         `).join('')}
@@ -6348,7 +6354,7 @@ function renderQrHub(patientId) {
         <div class="provider-view-label">📱 What the provider sees when they scan</div>
         <div class="provider-card-mock">
           <h4>${p.name}</h4>
-          <div style="font-size:.75rem;color:var(--muted);margin-bottom:.6rem">Stage IV NSCLC · Heart Failure NYHA III · ACP: Comfort-focused</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:.6rem;outline:none;border-bottom:1px dashed var(--line)" contenteditable="true" data-note-edit="true">Stage IV NSCLC · Heart Failure NYHA III · ACP: Comfort-focused</div>
           <div class="pcm-row"><div class="pcm-icon">👤</div><div><strong>Care Manager:</strong> Maria Okafor<br><small>Southlake FHT · Georgina</small></div></div>
           <div class="pcm-row"><div class="pcm-icon">📞</div><div><strong>Direct line:</strong> (905) 555-0142 · maria.okafor@southlake.example</div></div>
           <div class="pcm-consent">
@@ -7606,6 +7612,19 @@ function generateQRGrid(seed, size = 7) {
     row.scrollIntoView({behavior:'smooth', block:'nearest'});
   });
 
+
+  // Editable notes: blur → save toast
+  document.addEventListener('blur', function(e) {
+    var el = e.target;
+    if (!el.matches || !el.matches('[contenteditable="true"][data-note-edit]')) return;
+    var original = el.dataset.original;
+    if (original === undefined) {
+      el.dataset.original = el.textContent;
+    } else if (el.textContent !== original) {
+      showToast('✎ Note updated: \u201C' + el.textContent.substring(0, 40) + '...\u201D');
+      el.dataset.original = el.textContent;
+    }
+  }, true);
 })();
 </script>
 </body>
