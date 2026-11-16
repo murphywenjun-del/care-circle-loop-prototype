@@ -4626,7 +4626,10 @@ function renderCareCircle(){
   $("#circlePatientList").innerHTML=visiblePatients().map(patient=>`<button class="circle-patient-row ${patient.id===p.id?"selected":""}" data-circle-patient="${patient.id}"><span class="circle-avatar">${patient.name.split(/\s+/).map(x=>x[0]).slice(0,2).join("")}</span><span><strong>${escapeHtml(patient.name)}</strong><small>${escapeHtml(patient.segment)}</small></span><i class="risk-dot risk-${patient.risk}"></i></button>`).join("");
   $("#circlePatientBanner").innerHTML=`<span class="circle-avatar">${initials}</span><div class="circle-patient-meta"><h2>${escapeHtml(p.name)}</h2><small>${p.age} years · ${escapeHtml(p.segment)} · OHIP ending ${p.ohip}</small><small>Care manager: ${escapeHtml(p.owner)} · ${p.daysOnRegister} days on register · ${riskLabel(p.risk)} risk</small></div><span class="risk-pill ${p.risk==="red"?"high":p.risk==="amber"?"medium":"low"}">${riskLabel(p.risk)} priority</span>`;
   $$("[data-circle-tab]").forEach(b=>b.classList.toggle("active",b.dataset.circleTab===circleTab));
-  const renderers={circle:renderCircleOverview,extract:renderCircleExtract,patientCard:renderCirclePatientCard,navigator:renderCircleNavigator,transition:renderCircleTransition};
+  const renderers={circle:renderCircleOverview,extract:renderCircleExtract,patientCard:renderCirclePatientCard,navigator:renderCircleNavigator,transition:renderCircleTransition,
+  voice:function(){return "<div class=\"card\"><h3>🎙 Voice Populate</h3><p class=\"muted\">Live conversation to auto-extract. CM just confirms.</p></div>";},
+  consent:function(){return "<div class=\"card\"><h3>✓ Consent &amp; Access</h3><p class=\"muted\">Patient controls who sees their circle.</p></div>";},
+  "patient-control":function(){return "<div class=\"card\"><h3>📱 Patient Control</h3><p class=\"muted\">Patient decides who is in their circle.</p></div>";}};
   $("#circleFeaturePanel").innerHTML=renderers[circleTab]();
 }
 function circleCard(title,content,extra=""){return `<article class="circle-card"><div class="card-title"><h3>${title}</h3>${extra}</div>${content}</article>`;}
