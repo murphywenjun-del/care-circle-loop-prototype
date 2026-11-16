@@ -7420,7 +7420,7 @@ function generateQRGrid(seed, size = 7) {
     var btn = e.target.closest('button');
     if (btn && !btn.onclick && !btn.closest('#qrScanOverlay') && !btn.closest('.voice-actions') && !btn.closest('[class*="nav"]') && !btn.closest('[class*="sidebar"]') && !btn.closest('[class*="main-nav"]')) {
       var label = btn.textContent.trim().replace(/\s+/g, ' ').substring(0, 50);
-      if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn') && !btn.classList.contains('qrm-share') && !btn.classList.contains('pcm-btn')) {
+      if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn') && !btn.classList.contains('qrm-share') && !btn.classList.contains('pcm-btn') && !btn.classList.contains('voice-confirm-btn') && !btn.classList.contains('voice-discard-btn') && !btn.closest('[data-circle-action="invite"]') && !btn.id !== 'confirmCompleteActionBtn' && !btn.closest('[data-action="advanceHandoff"]')) {
         e.preventDefault();
         if (typeof showToast === 'function') {
           var msg = TOAST_MAP[label];
@@ -7576,7 +7576,183 @@ function generateQRGrid(seed, size = 7) {
         html += '<tr><td>Consent</td><td style="color:green">✓ Active</td></tr>';
         html += '<tr><td>Circle size</td><td>9 providers + 1 family</td></tr></table>';
         html += '<p style="font-size:.8rem;color:#666;margin-top:1rem">Instructions: At your next provider visit, show this QR code on your phone. The provider will scan it and CC their consult notes to your Care Manager. You do NOT need to do anything else.</p>';
-        html += '</body></html>';
+        html += '
+<script>
+/* ========== STATE MUTATIONS: clicks change the page, not just a toast ========== */
+(function() {
+  'use strict';
+  function toast(msg) { if (typeof window.showToast === 'function') window.showToast(msg); }
+
+  // Helper: update QR hub stats to match actual member states
+  function syncQRStats() {
+    document.querySelectorAll('.qr-hub').forEach(function(hub) {
+      var connected = hub.querySelectorAll('.qr-member.connected').length;
+      var pending = hub.querySelectorAll('.qr-member.pending').length;
+      var total = connected + pending;
+      var stats = hub.querySelectorAll('.qr-stat');
+      if (stats[0]) stats[0].querySelector('strong').textContent = String(connected);
+      if (stats[1]) stats[1].querySelector('strong').textContent = String(pending);
+      // header summary
+      var head = hub.querySelector('.ch-sub');
+      if (head) head.textContent = connected + ' connected \u00b7 ' + pending + ' pending \u00b7 3 notes CC\'d this month';
+      var stat = hub.querySelector('.ch-stat');
+      if (stat) stat.textContent = connected + '/' + total;
+    });
+    // roster summary card
+    document.querySelectorAll('[data-qr="southlake-qr-hub-summary"]').forEach(function(box) {
+      var card = box.closest('div');
+      var info = card && card.querySelector('small');
+      var hub = document.querySelector('.qr-hub');
+      if (hub && info) {
+        var c = hub.querySelectorAll('.qr-member.connected').length;
+        var p = hub.querySelectorAll('.qr-member.pending').length;
+        info.textContent = c + '/' + (c+p) + ' connected \u00b7 ' + p + ' pending';
+      }
+    });
+  }
+
+  // ---- 1. QR "Share": flip a pending member to connected, update stats ----
+  document.addEventListener('click', function(e) {
+    var share = e.target.closest('.qrm-share');
+    if (!share) return;
+    var member = share.closest('.qr-member');
+    if (member) {
+      member.classList.remove('pending');
+      member.classList.add('connected');
+      var check = member.querySelector('.qrm-check');
+      if (check) check.textContent = '\u2713';
+      var role = member.querySelector('.qrm-role');
+      if (role) role.textContent = 'Connected \u00b7 just now';
+      share.remove();
+      syncQRStats();
+      toast('\u2705 ' + (share.getAttribute('data-share') || 'Member') + ' connected to care circle \u00b7 status updated \u00b7 CM inbox notified');
+    }
+  }, true);
+
+  // ---- 2. "+ Invite to circle": add a NEW pending member to the hub + roster ----
+  var inviteCount = 0;
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-circle-action="invite"]');
+    if (!btn) return;
+    inviteCount++;
+    var newNames = ['Dr. Wong (Cardiology)', 'Helen R. (Family)', 'T. Nguyen (SW)', 'Dr. Ahmed (Palliative)', 'M. Lee (Community)'];
+    var name = newNames[(inviteCount - 1) % newNames.length];
+    function addMember(root, label) {
+      if (!root) return;
+      var members = root.querySelector('.qr-members');
+      if (!members) return;
+      var d = document.createElement('div');
+      d.className = 'qr-member pending';
+      d.style.borderLeft = '3px solid var(--blue)';
+      d.innerHTML = '<div class="qrm-check" style="background:var(--blue)">\u2192</div>' +
+        '<div><div class="qrm-name">' + name + '</div><div class="qrm-role">Invited \u00b7 awaiting consent</div></div>' +
+        '<button class="qrm-share" data-share="' + name + '">Share</button>';
+      members.appendChild(d);
+      if (window.makeQRCanvas && root.closest('.qr-hub')) { /* nothing */ }
+    }
+    document.querySelectorAll('.qr-hub').forEach(function(hub){ addMember(hub, 'hub'); });
+    syncQRStats();
+    toast('\ud83d\udce8 ' + name + ' invited \u00b7 now in QR hub as "pending consent" \u00b7 roster updated');
+  }, true);
+
+  // ---- 3. Voice "Confirm & add": mark each extraction item confirmed (green) ----
+  document.addEventListener('click', function(e) {
+    var confirm = e.target.closest('.voice-confirm-btn');
+    if (!confirm) return;
+    var panel = confirm.closest('.voice-mode') || document.querySelector('.voice-mode');
+    if (!panel) return;
+    var items = panel.querySelectorAll('.voice-extract-item');
+    items.forEach(function(it) {
+      it.style.borderColor = 'var(--green)';
+      it.style.background = 'var(--green-bg)';
+      var field = it.querySelector('.ve-field');
+      if (field && !field.querySelector('.ve-confirmed')) {
+        var mark = document.createElement('span');
+        mark.className = 've-confirmed';
+        mark.textContent = ' \u2713 added to circle';
+        mark.style.cssText = 'color:var(--green);font-weight:600;font-size:.72rem;margin-left:.4rem';
+        field.appendChild(mark);
+      }
+      var flag = it.querySelector('.ve-flag');
+      if (flag) { flag.textContent = '\u2713 confirmed by CM'; flag.style.color = 'var(--green)'; flag.style.borderColor = 'var(--green)'; }
+    });
+    var actions = panel.querySelector('.voice-actions');
+    if (actions) {
+      var note = document.createElement('div');
+      note.style.cssText = 'margin-top:.6rem;padding:.5rem .7rem;background:var(--green-bg);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:.8rem;font-weight:600';
+      note.textContent = '\u2705 ' + items.length + ' items confirmed into the care circle \u00b7 QR hub + consent log updated';
+      actions.appendChild(note);
+      confirm.disabled = true;
+      confirm.style.opacity = '0.45';
+      var disc = panel.querySelector('.voice-discard-btn');
+      if (disc) { disc.disabled = true; disc.style.opacity = '0.4'; }
+    }
+    toast('\u2705 ' + items.length + ' items confirmed \u00b7 circle updated \u00b7 patient notified');
+  }, true);
+
+  // ---- 4. Voice "Discard": mark panel discarded (dim items) ----
+  document.addEventListener('click', function(e) {
+    var disc = e.target.closest('.voice-discard-btn');
+    if (!disc) return;
+    var panel = disc.closest('.voice-mode') || document.querySelector('.voice-mode');
+    if (!panel) return;
+    panel.querySelectorAll('.voice-extract-item').forEach(function(it) {
+      it.style.opacity = '0.4';
+      it.style.textDecoration = 'line-through';
+      it.style.borderColor = 'var(--red)';
+      it.style.background = 'var(--red-bg)';
+    });
+    var note = document.createElement('div');
+    note.style.cssText = 'margin-top:.6rem;padding:.5rem .7rem;background:var(--red-bg);border:1px solid var(--red);border-radius:8px;color:var(--red);font-size:.8rem;font-weight:600';
+    note.textContent = '\u2715 Extraction discarded \u00b7 no changes made \u00b7 transcript retained 30 days per PHIPA';
+    var actions = panel.querySelector('.voice-actions');
+    if (actions) { actions.appendChild(note); disc.disabled = true; disc.style.opacity='0.4'; }
+    toast('\u2715 Extraction discarded \u00b7 circle unchanged \u00b7 transcript retained');
+  }, true);
+
+  // ---- 5. Worklist "Mark done": dim the top row + closed marker ----
+  document.addEventListener('click', function(e) {
+    var conf = e.target.closest('#confirmCompleteActionBtn');
+    if (!conf) return;
+    setTimeout(function() {
+      var row = document.querySelector('.worklist-row.selected') || document.querySelector('#priorityList .worklist-row');
+      if (row && !row.classList.contains('row-closed')) {
+        row.classList.add('row-closed');
+        row.style.background = 'var(--soft)';
+        row.style.opacity = '0.6';
+        var chev = row.querySelector('.chev');
+        if (chev) chev.textContent = '\u2713';
+        var due = row.querySelector('.due-tag');
+        if (due) { due.textContent = 'closed \u2713'; due.className = 'due-tag closed'; due.style.background='var(--green-bg)'; due.style.color='var(--green)'; }
+      }
+    }, 60);
+  }, true);
+
+  // ---- 6. Navigator "Advance handoff": mark the button done + progress badge ----
+  document.addEventListener('click', function(e) {
+    var adv = e.target.closest('[data-action="advanceHandoff"], .circle-row button');
+    if (!adv) return;
+    setTimeout(function() {
+      if (!adv.disabled) {
+        adv.disabled = true;
+        adv.style.background = 'var(--green)';
+        adv.textContent = adv.textContent.replace(/advance/i, 'Closed \u2713');
+      }
+    }, 80);
+  }, true);
+
+  // CSS for new states (row-closed, confirm/disabled)
+  var st = document.createElement('style');
+  st.textContent = '.row-closed .pname strong{ text-decoration: line-through; color: var(--muted); } ' +
+    '.due-tag.closed{ background: var(--green-bg); color: var(--green); } ' +
+    '.voice-extract-item{ transition: all .2s; } ' +
+    '[disabled]{ cursor: not-allowed; }';
+  document.head.appendChild(st);
+
+})();
+</script>
+
+</body></html>';
         w.document.write(html);
         w.document.close();
         setTimeout(function() {
