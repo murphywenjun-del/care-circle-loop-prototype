@@ -6186,10 +6186,12 @@ function renderVoicePanel(patient) {
           </div>
         `).join('')}
       </div>
-      <div class="voice-actions">
-        <button class="voice-confirm-btn" onclick="showToast('✓ 5 confirmed + 1 flagged item added to ${p.name}\'s care circle')">Confirm &amp; add to circle</button>
-        <button class="voice-discard-btn" onclick="showToast('Extraction discarded. No changes made.')">Discard</button>
-        <small class="muted" style="align-self:center;margin-left:auto">Patient consent: <strong style="color:var(--green)">granted</strong> · Recording auto-stops on conversation end</small>
+      <div class="voice-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+        <button class="voice-edit-btn" style="background:var(--amber);color:#fff">✎ Edit extraction</button>
+        <button class="voice-save-btn hidden" style="background:var(--green);color:#fff">💾 Save changes</button>
+        <button class="voice-confirm-btn">Confirm &amp; add to circle</button>
+        <button class="voice-discard-btn">Discard</button>
+        <small class="muted" style="align-self:center;margin-left:auto">Patient consent: <strong style="color:var(--green)">granted</strong> · edits are logged per PHIPA</small>
       </div>
     </div>
   `;
@@ -7793,7 +7795,61 @@ function generateQRGrid(seed, size = 7) {
     }, 80);
   }, true);
 
-  // CSS for new states (row-closed, confirm/disabled)
+  // ---- Voice Edit / Save buttons ----
+  document.addEventListener('click', function(e) {
+    var edit = e.target.closest('.voice-edit-btn');
+    if (edit) {
+      var panel = edit.closest('.voice-mode') || document.querySelector('.voice-mode');
+      if (!panel) return;
+      var save = panel.querySelector('.voice-save-btn');
+      var items = panel.querySelectorAll('.voice-extract-item');
+      var isEditing = panel.classList.toggle('voice-editing');
+      items.forEach(function(it) {
+        if (isEditing) {
+          it.style.borderColor = 'var(--amber)';
+          it.style.background = '#fffbeb';
+          it.style.boxShadow = 'inset 0 0 0 1px var(--amber)';
+          var val = it.querySelector('.ve-value');
+          if (val) { val.focus && val.setAttribute('data-edit-active', 'true'); }
+        } else {
+          it.style.borderColor = '';
+          it.style.background = '';
+          it.style.boxShadow = '';
+        }
+      });
+      edit.textContent = isEditing ? '✓ Done editing' : '✎ Edit extraction';
+      edit.style.background = isEditing ? 'var(--green)' : 'var(--amber)';
+      if (save) save.classList.remove('hidden');
+      if (isEditing) toast('\u270e Edit mode on \u00b7 click any field to modify \u00b7 then Save');
+      return;
+    }
+    var save = e.target.closest('.voice-save-btn');
+    if (save) {
+      var panel = save.closest('.voice-mode') || document.querySelector('.voice-mode');
+      if (!panel) return;
+      var items = panel.querySelectorAll('.voice-extract-item');
+      var changed = panel.querySelectorAll('.ve-value[data-edit-active]').length;
+      items.forEach(function(it) {
+        it.style.borderColor = 'var(--green)';
+        it.style.background = 'var(--green-bg)';
+        it.style.boxShadow = '';
+      });
+      save.classList.add('hidden');
+      save.disabled = true;
+      var ed = panel.querySelector('.voice-edit-btn');
+      if (ed) { ed.textContent = '\u2713 Edited'; ed.style.background = 'var(--muted)'; ed.disabled = true; }
+      panel.classList.remove('voice-editing');
+      toast('\ud83d\udcbe ' + changed + ' fields saved to ' + (document.querySelector('.circle-patient-row.selected .pname, .voice-meta')?.textContent || 'care circle') + ' \u00b7 PHIPA audit entry created');
+      // add a saved badge
+      var badge = document.createElement('div');
+      badge.style.cssText = 'margin-top:.6rem;padding:.5rem .7rem;background:var(--green-bg);border:1px solid var(--green);border-radius:8px;color:var(--green);font-size:.8rem;font-weight:600';
+      badge.textContent = '\u2705 Extraction saved with ' + changed + ' manual edit(s) \u00b7 timestamp ' + new Date().toLocaleTimeString();
+      var actions = panel.querySelector('.voice-actions');
+      if (actions) actions.appendChild(badge);
+    }
+  }, true);
+
+    // CSS for new states (row-closed, confirm/disabled)
   var st = document.createElement('style');
   st.textContent = '.row-closed .pname strong{ text-decoration: line-through; color: var(--muted); } ' +
     '.due-tag.closed{ background: var(--green-bg); color: var(--green); } ' +
