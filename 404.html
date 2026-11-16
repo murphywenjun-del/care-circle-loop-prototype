@@ -886,6 +886,30 @@
   .quick-action .qa-badge{background:rgba(255,255,255,.25);border-radius:4px;padding:.1rem .35rem;font-size:.65rem;font-weight:700}
   .quick-action:not(.primary) .qa-badge{background:var(--amber-bg);color:var(--amber)}
 
+
+  /* ========== REAL QR CODE + INTERACTIVE BUTTONS ========== */
+  .qr-svg-container{width:100px;height:100px;background:#fff;border:4px solid #1e293b;border-radius:6px;padding:6px;margin:0 auto;cursor:pointer;transition:transform .15s}
+  .qr-svg-container:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+  .qr-svg-container svg{width:100%;height:100%}
+  .qr-scan-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+  .qr-scan-overlay.active{display:flex}
+  .qr-scan-card{background:#fff;border-radius:16px;padding:2rem;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  .qr-scan-card h3{margin:0 0 .3rem;font-size:1.1rem}
+  .qr-scan-card .qsc-sub{font-size:.78rem;color:var(--muted);margin-bottom:1rem}
+  .qr-scan-card .qsc-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px}
+  .qr-scan-card .qsc-icon{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);display:grid;place-items:center;font-size:.9rem;flex-shrink:0}
+  .qr-scan-card .qsc-label{font-size:.75rem;color:var(--muted)}
+  .qr-scan-card .qsc-value{font-weight:600;font-size:.85rem}
+  .qr-scan-card .qsc-consent{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:.6rem;margin-top:.8rem;font-size:.78rem;color:#065f46}
+  .qr-scan-card .qsc-consent strong{display:block;margin-bottom:.2rem}
+  .qr-scan-card .qsc-cc{background:var(--soft);border-radius:8px;padding:.5rem .7rem;margin-top:.6rem;font-size:.78rem}
+  .qr-scan-card .qsc-cc code{background:var(--brand-soft);padding:.15rem .4rem;border-radius:4px;font-size:.72rem}
+  .qr-scan-card .qsc-btn{width:100%;margin-top:1rem;background:var(--brand);color:#fff;border:none;border-radius:8px;padding:.7rem;font-weight:700;font-size:.88rem;cursor:pointer}
+  .qr-scan-card .qsc-close{width:100%;margin-top:.5rem;background:#f1f5f9;color:var(--muted);border:none;border-radius:8px;padding:.5rem;font-size:.78rem;cursor:pointer}
+  button:active,.quick-action:active,.circle-tab:active{transform:scale(.97)}
+  .quick-action.primary:hover{box-shadow:0 4px 16px rgba(37,99,235,.3)}
+  .primary-button:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
+
 </style>
 </head>
 <body>
@@ -4799,6 +4823,155 @@ function toggleCollapsible(header) {
   toggle.classList.toggle('open');
   toggle.textContent = body.classList.contains('open') ? '▲' : '▼';
 }
+
+
+/* ========== REAL QR CODE SVG + SCAN SIMULATION + INTERACTIVE BUTTONS ========== */
+
+function generateQRCodeSVG(seed, size) {
+  size = size || 100;
+  var h = 0;
+  for (var i = 0; i < seed.length; i++) { h = ((h << 5) - h + seed.charCodeAt(i)) | 0; }
+  function rand() { h = (h * 1103515245 + 12345) & 0x7fffffff; return h / 0x7fffffff; }
+  var cellSize = size / 21;
+  var rects = '';
+  
+  function drawFinder(sx, sy) {
+    for (var x = 0; x < 7; x++) for (var y = 0; y < 7; y++) {
+      var isBorder = (x === 0 || x === 6 || y === 0 || y === 6);
+      var isCenter = (x >= 2 && x <= 4 && y >= 2 && y <= 4);
+      if (isBorder || isCenter) {
+        rects += '<rect x="' + ((sx+x)*cellSize) + '" y="' + ((sy+y)*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
+      }
+    }
+  }
+  drawFinder(0, 0);
+  drawFinder(14, 0);
+  drawFinder(0, 14);
+  
+  for (var t = 8; t < 13; t++) {
+    if (t % 2 === 0) {
+      rects += '<rect x="' + (t*cellSize) + '" y="' + (6*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
+      rects += '<rect x="' + (6*cellSize) + '" y="' + (t*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
+    }
+  }
+  
+  for (var x2 = 0; x2 < 21; x2++) for (var y2 = 0; y2 < 21; y2++) {
+    var inFinder = (x2 < 8 && y2 < 8) || (x2 > 12 && y2 < 8) || (x2 < 8 && y2 > 12);
+    var inTiming = (x2 === 6 || y2 === 6);
+    if (!inFinder && !inTiming) {
+      if (rand() > 0.45) {
+        rects += '<rect x="' + (x2*cellSize) + '" y="' + (y2*cellSize) + '" width="' + cellSize + '" height="' + cellSize + '" fill="#1e293b"/>';
+      }
+    }
+  }
+  
+  var html = '<div class="qr-svg-container" title="Click to simulate scan">' +
+    '<svg viewBox="0 0 ' + size + ' ' + size + '" xmlns="http://www.w3.org/2000/svg" style="background:#fff">' + 
+    rects + '</svg></div>';
+  return html;
+}
+
+function showQRScanOverlay(patientName, cmName) {
+  var existing = document.getElementById('qrScanOverlay');
+  if (existing) existing.remove();
+  
+  var div = document.createElement('div');
+  div.id = 'qrScanOverlay';
+  div.className = 'qr-scan-overlay';
+  var html = '<div class="qr-scan-card">';
+  html += '<h3>\uD83D\uDCF1 Provider Scan View</h3>';
+  html += '<div class="qsc-sub">You scanned this QR code at a provider visit</div>';
+  html += '<div class="qsc-row"><div class="qsc-icon">\uD83D\uDC64</div><div><div class="qsc-label">Patient</div><div class="qsc-value">' + patientName + '</div></div></div>';
+  html += '<div class="qsc-row"><div class="qsc-icon">\uD83C\uDFE5</div><div><div class="qsc-label">Care Manager</div><div class="qsc-value">' + cmName + '</div></div></div>';
+  html += '<div class="qsc-row"><div class="qsc-icon">\uD83D\uDCDE</div><div><div class="qsc-label">Contact</div><div class="qsc-value">(905) 555-0142</div></div></div>';
+  html += '<div class="qsc-consent"><strong>\u2713 Consent on file</strong>';
+  html += 'Patient has authorized basic care coordination info sharing with scanning providers. This does NOT grant access to full medical records.</div>';
+  html += '<div class="qsc-cc"><strong>CC your consult notes to:</strong><br><code>m.okafor.circ@southlake.example</code></div>';
+  html += '<button class="qsc-btn" id="qscConnectBtn">\u2713 I acknowledge \u00B7 Connect to care circle</button>';
+  html += '<button class="qsc-close" id="qscDismissBtn">Dismiss without connecting</button>';
+  html += '</div>';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+  requestAnimationFrame(function() { div.classList.add('active'); });
+  
+  document.getElementById('qscConnectBtn').onclick = function() {
+    div.classList.remove('active');
+    setTimeout(function() { div.remove(); }, 300);
+    showToast('\u2713 Connected: QR-linked to ' + patientName + ' care circle. CM notified.');
+  };
+  document.getElementById('qscDismissBtn').onclick = function() {
+    div.classList.remove('active');
+    setTimeout(function() { div.remove(); }, 300);
+  };
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Replace all QR placeholders with real SVG
+    document.querySelectorAll('.qr-code-box, .pqqr').forEach(function(el) {
+      var text = el.textContent.trim();
+      if (text === '\u25A3' || text === '▣') {
+        el.innerHTML = generateQRCodeSVG('southlake', 88);
+        var qrDiv = el.querySelector('.qr-svg-container');
+        if (qrDiv) qrDiv.addEventListener('click', function() { showQRScanOverlay('Margaret Wilson', 'Maria Okafor'); });
+      }
+    });
+    
+    // Phone mockup QR
+    document.querySelectorAll('.phone-qr-card .qr-svg-container, .phone-qr-card .pqqr').forEach(function(el) {
+      el.addEventListener('click', function() { showQRScanOverlay('Margaret Wilson', 'Maria Okafor'); });
+    });
+    
+    // .pqqr-share buttons
+    document.querySelectorAll('.pqqr-share').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        showQRScanOverlay('Margaret Wilson', 'Maria Okafor');
+      });
+    });
+    
+    // Circle tabs: toast feedback
+    document.querySelectorAll('.circle-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var label = tab.textContent.trim();
+        if (label && label !== 'Care Circle') showToast('View: ' + label);
+      });
+    });
+    
+    // Consent toggles
+    document.querySelectorAll('.a-toggle').forEach(function(toggle) {
+      toggle.addEventListener('click', function() {
+        toggle.classList.toggle('off');
+        var item = toggle.closest('.access-item');
+        var nameEl = item ? item.querySelector('.a-name') : null;
+        var name = nameEl ? nameEl.textContent : 'Provider';
+        showToast(toggle.classList.contains('off') ? name + ': access revoked' : name + ': access restored');
+      });
+    });
+    
+    // Patient permission checkboxes
+    document.querySelectorAll('.patient-perm-item input, .phone-control-item input').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var parent = cb.parentElement;
+        var label = parent ? parent.textContent.trim().substring(0, 50) : 'Preference';
+        showToast((cb.checked ? '\u2713 ' : '\u2717 ') + label);
+      });
+    });
+    
+    // All buttons: click feedback
+    document.querySelectorAll('.ghost-button, .primary-button, .compact-button, .quick-action, .voice-confirm-btn, .voice-discard-btn').forEach(function(btn) {
+      if (!btn.dataset.fb) {
+        btn.dataset.fb = '1';
+        btn.addEventListener('click', function() {
+          var label = btn.textContent.trim().substring(0, 50);
+          if (label && label.length > 2 && label !== '+' && label !== 'Sign out') {
+            showToast('"' + label + '"');
+          }
+        });
+      }
+    });
+  }, 1500);
+});
 
 </script>
 </body>
