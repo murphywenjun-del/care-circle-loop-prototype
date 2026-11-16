@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Southlake Connect — Care Circle</title>
@@ -3910,7 +3913,7 @@ function renderQrHub(patientId) {
   return `
     <div class="qr-hub">
       <div class="qr-hub-header">
-        <div class="qr-code-box">
+        <div class="qr-code-box" data-qrsim="true">
           <span>▣</span>
         </div>
         <div class="qr-hub-title">
@@ -4867,17 +4870,40 @@ function generateQRGrid(seed, size = 7) {
 }
 
 // Replace all ▣ QR boxes with CSS grids
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(() => {
-    document.querySelectorAll('.qr-code-box, .pqqr, .qr-code-box').forEach(box => {
+// QR overlay - create immediately, no timing issues
+(function() {
+  const overlay = document.createElement('div');
+  overlay.className = 'qr-scan-overlay';
+  overlay.id = 'qrScanOverlay';
+  overlay.innerHTML = `
+    <div style="text-align:center">
+      <div class="qr-scan-frame">
+        <div id="qrScanGrid" class="qr-sim" style="width:200px;height:200px;margin:40px auto;background:#fff;padding:12px;gap:2px"></div>
+      </div>
+      <div class="qr-scan-result" style="margin-top:1.5rem">
+        <h3>✓ QR Scanned</h3>
+        <p><strong>Patient:</strong> Margaret J. (anonymized)</p>
+        <p><strong>Care Manager:</strong> Maria Okafor, RN<br>Southlake FHT · Georgina<br>(905) 555-0142 · m.okafor.circ@southlake.example</p>
+        <p style="background:#f0fdf4;padding:.4rem .6rem;border-radius:6px;border:1px solid #86efac;color:#065f46"><strong>✓ Consent active</strong> — Patient has authorized basic care coordination info sharing</p>
+        <p style="font-size:.75rem;color:#64748b;margin-top:.5rem">CC your consult notes to: m.okafor.circ@southlake.example<br>Total effort: ~10 seconds · No new system needed</p>
+        <button class="qsr-action" onclick="document.getElementById('qrScanOverlay').classList.remove('active');showToast('You are now QR-connected to Margaret's care circle. CM notified.')">I'm connected — CC to CM</button>
+        <button class="qsr-close" onclick="document.getElementById('qrScanOverlay').classList.remove('active')">Close</button>
+      </div>
+    </div>
+  `;
+  // Populate QR grid
+  document.body.appendChild(overlay);
+  
+  // Also replace any static ▣ boxes with CSS QR when they appear in DOM
+  const qrObserver = new MutationObserver(() => {
+    document.querySelectorAll('.qr-code-box, .pqqr').forEach(box => {
       if (box.textContent.trim() === '▣' || box.textContent.trim() === '📱') {
         const seed = (box.closest('.phone-qr-card')?.querySelector('.pqqr-label')?.textContent || 
                       box.closest('.qr-hub')?.querySelector('.qr-hub-title')?.textContent || 
                       'care-circle').replace(/\s+/g, '');
-        box.innerHTML = '<div class="qr-sim">' + generateQRGrid(seed) + '</div>';
-        box.style.width = '120px';
-        box.style.height = '120px';
-        box.style.padding = '8px';
+        box.innerHTML = '<div class="qr-sim" style="width:100%;height:100%">' + generateQRGrid(seed) + '</div>';
+        box.style.width = '100px';
+        box.style.height = '100px';
         box.style.background = '#fff';
         box.style.borderRadius = '6px';
         box.style.border = '3px solid #1e293b';
@@ -4885,39 +4911,35 @@ document.addEventListener('DOMContentLoaded', function() {
         box.style.placeItems = 'center';
       }
     });
-    
-    // Add QR scan overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'qr-scan-overlay';
-    overlay.id = 'qrScanOverlay';
-    overlay.innerHTML = `
-      <div style="text-align:center">
-        <div class="qr-scan-frame">
-          <div class="qr-sim" style="width:200px;height:200px;margin:40px auto;background:#fff;padding:12px;gap:2px">
-            ${generateQRGrid('southlake-margaret-jk-0471', 9)}
-          </div>
-        </div>
-        <div class="qr-scan-result" style="margin-top:1.5rem">
-          <h3>✓ QR Scanned</h3>
-          <p><strong>Patient:</strong> Margaret J. (anonymized)</p>
-          <p><strong>Care Manager:</strong> Maria Okafor, RN<br>Southlake FHT · Georgina<br>(905) 555-0142 · m.okafor.circ@southlake.example</p>
-          <p style="background:#f0fdf4;padding:.4rem .6rem;border-radius:6px;border:1px solid #86efac;color:#065f46"><strong>✓ Consent active</strong> — Patient has authorized basic care coordination info sharing</p>
-          <p style="font-size:.75rem;color:#64748b;margin-top:.5rem">CC your consult notes to: m.okafor.circ@southlake.example<br>Total effort: ~10 seconds · No new system needed</p>
-          <button class="qsr-action" onclick="document.getElementById('qrScanOverlay').classList.remove('active');showToast('You are now QR-connected to Margaret\'s care circle. CM notified.')">I'm connected — CC to CM</button>
-          <button class="qsr-close" onclick="document.getElementById('qrScanOverlay').classList.remove('active')">Close</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    
-    // Make "Show to Provider" button trigger the scan overlay
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('.pqqr-share') || e.target.closest('.qr-code-box')) {
-        document.getElementById('qrScanOverlay').classList.add('active');
+    // Also populate the scan overlay grid
+    const scanGrid = document.getElementById('qrScanGrid');
+    if (scanGrid && !scanGrid.innerHTML) {
+      scanGrid.innerHTML = generateQRGrid('southlake-margaret-jk-0471', 9);
+    }
+  });
+  qrObserver.observe(document.body, { childList: true, subtree: true });
+  
+  // Also try immediately in case DOM is ready
+  setTimeout(() => {
+    document.querySelectorAll('.qr-code-box, .pqqr').forEach(box => {
+      if (box.textContent.trim() === '▣') {
+        const seed = 'care-circle';
+        box.innerHTML = '<div class="qr-sim" style="width:100%;height:100%">' + generateQRGrid(seed) + '</div>';
       }
-    }, true);
-  }, 1500);
-});
+    });
+    const scanGrid2 = document.getElementById('qrScanGrid');
+    if (scanGrid2 && !scanGrid2.innerHTML) {
+      scanGrid2.innerHTML = generateQRGrid('southlake-margaret-jk-0471', 9);
+    }
+  }, 500);
+  
+  // "Show to Provider" triggers overlay
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.pqqr-share') || e.target.closest('.qr-code-box') || e.target.closest('[data-qrsim]')) {
+      document.getElementById('qrScanOverlay').classList.add('active');
+    }
+  }, true);
+})();
 
 /* ========== INTERACTIVE: Make all buttons clickable with feedback ========== */
 document.addEventListener('click', function(e) {
