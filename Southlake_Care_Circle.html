@@ -7563,7 +7563,61 @@ function generateQRGrid(seed, size = 7) {
         html += '<tr><td>Consent</td><td style="color:green">✓ Active</td></tr>';
         html += '<tr><td>Circle size</td><td>9 providers + 1 family</td></tr></table>';
         html += '<p style="font-size:.8rem;color:#666;margin-top:1rem">Instructions: At your next provider visit, show this QR code on your phone. The provider will scan it and CC their consult notes to your Care Manager. You do NOT need to do anything else.</p>';
-        html += '<script>
+        html += '</body></html>';
+        w.document.write(html);
+        w.document.close();
+        setTimeout(function() {
+          try {
+            var qr = qrcode(0, 'M');
+            qr.addData(JSON.stringify({patient:'Margaret J.',cm:'Maria Okafor, RN',org:'Southlake FHT'}));
+            qr.make();
+            var cv = document.createElement('canvas');
+            var n = qr.getModuleCount();
+            var cell = Math.floor(180/(n+4));
+            var total = cell*(n+4);
+            cv.width=total;cv.height=total;
+            var cx=cv.getContext('2d');
+            cx.fillStyle='#fff';cx.fillRect(0,0,total,total);
+            cx.fillStyle='#000';
+            var off=2*cell;
+            for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(qr.isDark(r,c))cx.fillRect(off+c*cell,off+r*cell,cell,cell);
+            var box=w.document.getElementById('printQr');
+            if(box)box.appendChild(cv);
+            w.print();
+          } catch(e) { var box=w.document.getElementById('printQr');if(box)box.innerHTML='<p>QR data: southlake-care-margaret</p>'; }
+        }, 300);
+      } else {
+        showToast('Print dialog blocked. Allow popups.');
+      }
+    }
+  });
+
+  // P2: Today's plan rows → highlight in worklist (no navigation)
+  document.addEventListener('click', function(e) {
+    var row = e.target.closest('.tp-row');
+    if (!row) return;
+    var name = row.querySelector('span')?.textContent || '';
+    var rows = document.querySelectorAll('.worklist-row');
+    rows.forEach(function(r) {
+      r.classList.remove('selected');
+      if (r.textContent.includes(name.split('\u00b7')[0].trim())) r.classList.add('selected');
+    });
+    showToast('Selected: ' + name);
+    row.scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+
+  // Editable notes: blur → save toast
+  document.addEventListener('blur', function(e) {
+    var el = e.target;
+    if (!el.matches || !el.matches('[contenteditable="true"][data-note-edit]')) return;
+    var original = el.dataset.original;
+    if (original === undefined) { el.dataset.original = el.textContent; }
+    else if (el.textContent !== original) { showToast('\u270e Note updated'); el.dataset.original = el.textContent; }
+  }, true);
+
+})();
+</script>
+<script>
 /* ========== UNIT TESTS (?test=1) ========== */
 if (location.search.includes('test=1')) {
   var __testResults = [];
@@ -7577,7 +7631,7 @@ if (location.search.includes('test=1')) {
     c.id = 'unitTestResults';
     c.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1e293b;color:#fff;padding:1rem 1.5rem;z-index:99999;font-family:monospace;font-size:.82rem;box-shadow:0 4px 12px rgba(0,0,0,.3)';
     c.innerHTML = '<strong style="font-size:1rem">Unit Tests: ' + __testPassed + '/' + (__testPassed+__testFailed) + ' passed</strong><div style="margin-top:.6rem;display:grid;gap:.3rem">' +
-      __testResults.map(function(r){ return '<div style="color:' + (r.ok?'#4ade80':'#f87171') + '">' + (r.ok?\u2705:\u274C) + ' ' + r.n + (r.d?' \u2014 '+r.d:'') + '</div>'; }).join('') + '</div>';
+      __testResults.map(function(r){ return '<div style="color:' + (r.ok?'#4ade80':'#f87171') + '">' + (r.ok?'\u2705':'\u274C') + ' ' + r.n + (r.d?' \u2014 '+r.d:'') + '</div>'; }).join('') + '</div>';
     document.body.appendChild(c);
   }
   setTimeout(function() {
