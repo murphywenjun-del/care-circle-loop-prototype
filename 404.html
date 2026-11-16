@@ -1091,6 +1091,11 @@
               <span style="font-size:.7rem;color:var(--muted)">3:00 PM</span>
               <span class="tag" style="background:var(--blue-bg);color:var(--blue);font-size:.65rem">voice</span>
             </div>
+            <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--amber-bg);border:1px solid var(--amber);border-radius:8px;cursor:pointer" onclick="openClinicalLoop()">
+              <span style="font-weight:600;font-size:.82rem;flex:1">📞 John's daughter flagged a change</span>
+              <span style="font-size:.7rem;color:var(--amber);font-weight:700">assess now →</span>
+              <span class="tag" style="background:var(--red-bg);color:var(--red);font-size:.65rem">clinical</span>
+            </div>
             <div class="tp-row" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--soft);border-radius:8px">
               <span style="font-weight:600;font-size:.82rem;flex:1">Douglas H · Check-in call</span>
               <span style="font-size:.7rem;color:var(--muted)">4:30 PM</span>
@@ -6300,33 +6305,34 @@ function renderClinicalPanel(patientId) {
   var nm = p ? p.name : "John Karras";
   // 5 CM tasks: state 0=done,1=active,2=pending
   var T = [
-    { t: "Triage the call", note: "≈2 min · no new system", sub: [
-      "Log the report — who / when / what changed",
-      "3 quick safety checks: any fall? meds changed? eating & drinking?" ] },
-    { t: "In-scope assessment", note: "RN scope · NOT a diagnosis", sub: [
-      "Re-screen: AMT, confusion timeline, O₂, pain, falls",
-      "Compare to last baseline (Jun 3)" ] },
+    { t: "Triage the call", note: "\u22482 min \u00b7 no new system", sub: [
+      "Log the report \u2014 who / when / what changed",
+      "3 quick safety checks: any fall? meds changed? eating & drinking?" ], route: null },
+    { t: "In-scope assessment", note: "RN scope \u00b7 NOT a diagnosis", sub: [
+      "Re-screen: AMT, confusion timeline, O\u2082, pain, falls",
+      "Compare to last baseline (Jun 3)" ], route: { label: "\ud83c\udf99 record it in Voice Visit", fn: "openVoiceVisit" } },
     { t: "Make the escalation call", note: "documented + audited", sub: [
-      "Judgment: new + progressive → needs a clinician look",
-      "Write the reason into the record (audit trail)" ] },
+      "Judgment: new + progressive \u2192 needs a clinician look",
+      "Write the reason into the record (audit trail)" ], route: { label: "\u2192 Care Plan \u00b7 Escalation", fn: "openCarePlanEscalation" } },
     { t: "Contact the right partner", note: "from John's circle", sub: [
       "Chose St. Joseph's acute team",
-      "Agreed options: home visit / clinic / ED" ] },
+      "Agreed options: home visit / clinic / ED" ], route: { label: "\ud83d\udd35 open in Care Circle", fn: "openCirclePartner" } },
     { t: "Notify & close the loop", note: "family + circle", sub: [
       "Told daughter what's happening & when",
-      "Circle updated · follow-up set for Jun 20" ] }
+      "Circle updated \u00b7 follow-up set for Jun 20" ], route: { label: "\ud83d\udd1c Loopbacks + notify", fn: "openLoopback" } }
   ];
   var rows = T.map(function(x, i){
     var st = i===0 ? 'done' : (i===1 ? 'active' : 'pending');
     var mark = st==='done' ? '\u2713' : (st==='active' ? '\u25b6' : '\u25cb');
     var color = st==='done' ? 'var(--green)' : (st==='active' ? 'var(--amber)' : 'var(--muted)');
+    var routeBtn = x.route ? '<button class="ghost-button compact-button cl-route" data-cl-route="'+x.route.fn+'" style="margin-top:.4rem;background:transparent;border:1px solid var(--brand);color:var(--brand);font-size:.72rem">' + x.route.label + '</button>' : '';
     return '<div class="cl-task '+st+'" data-cl-task="'+(i+1)+'" style="border-left:3px solid '+color+'">'
       + '<div style="display:flex;gap:.5rem;align-items:flex-start">'
       +   '<span style="font-weight:800;color:'+color+'">'+mark+'</span>'
       +   '<div style="flex:1"><strong style="font-size:.86rem">'+(i+1)+'. '+x.t+'</strong> <small style="color:var(--muted);font-size:.68rem">'+x.note+'</small>'
       +     '<ul style="margin:.35rem 0 0 .1rem;list-style:none;font-size:.78rem;color:var(--ink-2,#475569)">'
       +     x.sub.map(function(s){ return '<li style="margin:.15rem 0">\u00b7 '+s+'</li>'; }).join('')
-      +     '</ul></div></div></div>';
+      +     '</ul>' + routeBtn + '</div></div></div>';
   }).join('');
   return `
     <div class="card">
@@ -6335,7 +6341,7 @@ function renderClinicalPanel(patientId) {
         <span class="risk-pill low">In RN scope</span>
       </div>
       <div style="font-size:.82rem;color:var(--muted);margin-bottom:.6rem">
-        What a Care Manager <strong style="color:var(--ink)">actually does</strong> — 5 concrete tasks. She assesses in scope and routes to the right clinical team; she does not diagnose.
+        What a Care Manager <strong style="color:var(--ink)">actually does</strong> — 5 tasks. Each task shows <strong>where in this tool</strong> it happens. She assesses in scope and routes to the right team; she does not diagnose.
       </div>
       <div class="cl-trigger">
         <span class="cl-trigger-badge">📞 09:14 · logged</span>
@@ -6345,15 +6351,13 @@ function renderClinicalPanel(patientId) {
         ${rows}
       </div>
       <div class="cl-result" data-cl-result>
-        <span>✅</span><div><strong>All 5 tasks done.</strong> John seen at home Jun 20 · daughter + circle notified · PHIPA audit logged. <a href="#" style="color:var(--brand)" data-cl-link>Care Plan: Escalation plan</a></div>
+        <span>✅</span><div><strong>All 5 tasks done.</strong> John seen at home Jun 20 · daughter + circle notified · PHIPA audit logged.</div>
       </div>
       <div class="cl-disclaimer">Care pathways depend on the patient's needs, available services and clinical judgment. Maria acts within RN scope — she does not diagnose, and does not replace his doctor or the clinical team.</div>
       <button class="primary-button compact-button cl-advance" data-cl-advance="${nm}">▶ Complete task 2 (In-scope assessment)</button>
     </div>
   `;
 }
-
-
 function renderQrHub(patientId) {
   const p = patients.find(x => x.id === patientId) || patients[0];
   const team = p.team || [];
@@ -6364,6 +6368,7 @@ function renderQrHub(patientId) {
     { name: 'Palliative Team', connected: true, time: 'Jun 10' },
     { name: 'Social Worker', connected: true, time: 'Jun 12' },
     { name: 'Hospice Designated', connected: false },
+     { name: "St. Joseph's acute team", connected: false },
     { name: 'Ontario Health at Home', connected: false },
     { name: 'Navigator (CHATS)', connected: false },
     { name: 'Caregiver (family)', connected: false },
@@ -8154,6 +8159,15 @@ function generateQRGrid(seed, size = 7) {
       e.stopPropagation();
       return;
     }
+  }, true);
+
+  // ---- S8 route buttons: jump to the real feature each task lives in ----
+  document.addEventListener('click', function(e) {
+    var rb = e.target.closest('.cl-route');
+    if (!rb) return;
+    var fn = rb.dataset.clRoute;
+    if (typeof window[fn] === 'function') window[fn]();
+    e.stopPropagation();
   }, true);
 
   // CSS for new states (row-closed, confirm/disabled)
