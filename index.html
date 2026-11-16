@@ -5072,6 +5072,47 @@ function generateQRGrid(seed, size = 7) {
       }
     }
   }, true);
+
+  // ===== P1+P3: Re-inject quick actions + QR card on careCircleView =====
+  function reinjectCCV() {
+    var ccv = document.getElementById('careCircleView');
+    if (!ccv) return;
+    // P1: Quick actions
+    if (!ccv.querySelector('.quick-action')) {
+      var d = document.createElement('div');
+      d.className = 'quick-actions';
+      d.id = 'quickActionsReinject';
+      var tabs = ['voice|\ud83d\udc99|Voice Populate|primary','consent|\u2713|Consent|','patient-control|\ud83d\udcf1|Patient View|','navigator|\u2194|Navigator|'];
+      d.innerHTML = tabs.map(function(t) {
+        var parts = t.split('|');
+        return '<button class="quick-action' + (parts[3] ? ' primary' : '') + '" onclick="document.querySelector(\'[data-circle-tab=\\\'' + parts[0] + '\\\']\')?.click()"><span class="qa-icon">' + parts[1] + '</span> ' + parts[2] + (parts[3] ? ' <span class="qa-badge">' + parts[3] + '</span>' : '') + '</button>';
+      }).join('');
+      var target = ccv.querySelector('#circleFeaturePanel');
+      if (target) target.parentNode.insertBefore(d, target);
+      else ccv.appendChild(d);
+    }
+    // P3: QR in roster
+    var roster = ccv.querySelector('.circle-roster');
+    if (roster && !roster.querySelector('[data-qr="southlake-qr-hub-summary"]')) {
+      var card = document.createElement('div');
+      card.style.cssText = 'margin-top:.8rem;padding:.6rem .8rem;border:2px solid var(--brand);border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;gap:.6rem';
+      var qrBox = document.createElement('div');
+      qrBox.setAttribute('data-qr', 'southlake-qr-hub-summary');
+      qrBox.setAttribute('data-qr-size', '50');
+      qrBox.style.cssText = 'width:50px;height:50px;background:#fff;border:2px solid var(--brand);border-radius:6px';
+      var info = document.createElement('div');
+      info.innerHTML = '<strong style="font-size:.78rem">QR Connection</strong><br><small style="font-size:.68rem;color:var(--muted)">4/9 connected \u00b7 3 CC\'d</small>';
+      card.appendChild(qrBox);
+      card.appendChild(info);
+      roster.appendChild(card);
+      setTimeout(function() { makeQRCanvas(qrBox, 'southlake-qr-hub-summary', 50); }, 300);
+    }
+  }
+  // Run periodically to catch after any innerHTML wipe
+  setInterval(reinjectCCV, 2000);
+  setTimeout(reinjectCCV, 3000);
+  setTimeout(reinjectCCV, 6000);
+
 })();
 </script>
 
