@@ -6516,29 +6516,7 @@ document.addEventListener('click', function(e) {
 }, true);
 
 
-/* ========== VERSION BANNER + DEMO GUIDE ========== */
-(function() {
-  const banner = document.createElement('div');
-  banner.id = 'versionBanner';
-  banner.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;background:#1e293b;color:#fff;padding:.8rem 1.2rem;border-radius:10px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.25);font-size:.78rem;line-height:1.5';
-  banner.innerHTML = `
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
-      <span style="background:#10b981;padding:.1rem .5rem;border-radius:4px;font-size:.65rem;font-weight:700">v2</span>
-      <strong style="font-size:.85rem">Oct 21 updates</strong>
-      <button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem">✕</button>
-    </div>
-    <ul style="margin:0;padding-left:1.1rem;color:#cbd5e1">
-      <li><strong style="color:#fff">Voice Populate</strong> — live conversation → auto-extract</li>
-      <li><strong style="color:#fff">Consent & Access</strong> — patient controls who sees circle</li>
-      <li><strong style="color:#fff">QR Connection Hub</strong> — circle members QR status</li>
-      <li><strong style="color:#fff">Patient Control</strong> — "I decide who's in my circle"</li>
-      <li style="color:#94a3b8">Capacity module: de-prioritized</li>
-    </ul>
-  `;
-  document.body.appendChild(banner);
-  // Auto-hide after 12s
-  setTimeout(() => { banner.style.transition='opacity .5s'; banner.style.opacity='0'; setTimeout(()=>banner.remove(),500); }, 15000);
-})();
+/* ========== VERSION BANNER (removed — user asked no popup) ========== */
 
 /* ========== LIVE VOICE TYPING EFFECT ========== */
 const _origRenderVoice = window.renderVoicePanel;
