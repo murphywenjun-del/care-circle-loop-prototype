@@ -4632,10 +4632,10 @@ function renderCareCircle(){
 function circleCard(title,content,extra=""){return `<article class="circle-card"><div class="card-title"><h3>${title}</h3>${extra}</div>${content}</article>`;}
 function renderCircleOverview(){
  const p=selectedPatient(), handoffs=circleHandoffs[p.id]||[];
- return `<div class="circle-note"><strong>Shared care circle</strong><br>${escapeHtml(p.blocker)} ${escapeHtml(p.recommendation)}</div><div class="circle-grid">${circleCard("People in this care circle",p.team.map(([role,name])=>`<div class="circle-member"><span class="avatar">${name.split(/[ .]/).filter(Boolean).map(x=>x[0]).slice(0,2).join("")}</span><div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(role)}</small></div><span class="circle-role">Connected</span></div>`).join(""),'<button class="ghost-button compact-button" data-circle-action="invite">+ Invite</button>')}${circleCard("Shared care plan",`<div class="circle-goals"><div class="circle-goal"><strong>Care preferences</strong><small>Home preferred · comfort focused</small><span class="circle-state">Confirmed</span></div><div class="circle-goal"><strong>ACP / DNR</strong><small>Goals of care documentation</small><span class="circle-state ${p.risk==="red"?"wait":""}">${p.risk==="red"?"Review signature":"On file"}</span></div><div class="circle-goal"><strong>Escalation plan</strong><small>After-hours guidance</small><span class="circle-state ${p.risk==="red"?"bad":""}">${p.risk==="red"?"Needs confirmation":"Reviewed"}</span></div></div><div class="circle-actions"><button class="primary-button compact-button" data-circle-tab="extract">Review AI updates</button><button class="ghost-button compact-button" data-go="carePlanView">Open full care plan</button></div>`)}</div>${circleCard("Loop closure snapshot",`<div class="circle-track"><article><strong>Tasks closed</strong><span class="circle-state">${handoffs.filter(h=>h.task==="Closed").length} complete</span></article><article><strong>Service connection</strong><span class="circle-state wait">${handoffs.filter(h=>h.service!=="Connected").length} pending</span></article><article><strong>Patient needs</strong><span class="circle-state bad">${handoffs.filter(h=>h.need!=="Met").length} unresolved</span></article></div><button class="ghost-button compact-button" data-circle-tab="navigator">Open navigator handoffs →</button>`)} `;
+ return `<div class="circle-note"><strong>Shared care circle</strong><br><span contenteditable="true" data-note-edit="true" style="outline:none">${escapeHtml(p.blocker)} ${escapeHtml(p.recommendation)}</span></div><div class="circle-grid">${circleCard("People in this care circle",p.team.map(([role,name])=>`<div class="circle-member"><span class="avatar">${name.split(/[ .]/).filter(Boolean).map(x=>x[0]).slice(0,2).join("")}</span><div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(role)}</small></div><span class="circle-role">Connected</span></div>`).join(""),'<button class="ghost-button compact-button" data-circle-action="invite">+ Invite</button>')}${circleCard("Shared care plan",`<div class="circle-goals"><div class="circle-goal"><strong>Care preferences</strong><small>Home preferred · comfort focused</small><span class="circle-state">Confirmed</span></div><div class="circle-goal"><strong>ACP / DNR</strong><small>Goals of care documentation</small><span class="circle-state ${p.risk==="red"?"wait":""}">${p.risk==="red"?"Review signature":"On file"}</span></div><div class="circle-goal"><strong>Escalation plan</strong><small>After-hours guidance</small><span class="circle-state ${p.risk==="red"?"bad":""}">${p.risk==="red"?"Needs confirmation":"Reviewed"}</span></div></div><div class="circle-actions"><button class="primary-button compact-button" data-circle-tab="extract">Review AI updates</button><button class="ghost-button compact-button" data-go="carePlanView">Open full care plan</button></div>`)}</div>${circleCard("Loop closure snapshot",`<div class="circle-track"><article><strong>Tasks closed</strong><span class="circle-state">${handoffs.filter(h=>h.task==="Closed").length} complete</span></article><article><strong>Service connection</strong><span class="circle-state wait">${handoffs.filter(h=>h.service!=="Connected").length} pending</span></article><article><strong>Patient needs</strong><span class="circle-state bad">${handoffs.filter(h=>h.need!=="Met").length} unresolved</span></article></div><button class="ghost-button compact-button" data-circle-tab="navigator">Open navigator handoffs →</button>`)} `;
 }
-function renderCircleExtract(){const p=selectedPatient();return `<div class="circle-note warning"><strong>AI assisted draft · Staff review required</strong><br>Suggested fields are extracted from synthetic notes. Confirm before adding to the record.</div>${circleCard(`Source note · ${p.lastContact}`,`<p>“Symptoms have changed since the last contact. The family prefers care at home if symptoms can be managed. Please review the escalation plan and confirm after-hours contacts.”</p>`)}${circleCard("Suggested updates",`<div class="circle-fields"><label>Change in condition<textarea id="extractCondition">Symptoms changed since last contact; family reports increased care needs.</textarea></label><label>Patient preference<input id="extractPreference" value="Remain at home if symptoms can be managed"></label><label>Suggested follow-up<input id="extractFollowup" value="Confirm escalation plan and after-hours contact"></label></div><div class="circle-actions"><button class="ghost-button" data-circle-action="saveDraft">Save draft</button><button class="primary-button" data-circle-action="confirmExtract">Confirm and add to activity</button></div>`,'<span class="tag v2">AI draft</span>')}`;}
-function renderCirclePatientCard(){const p=selectedPatient();return `<div class="circle-note"><strong>Patient and family contact card</strong><br>Plain-language coordination summary. Share with the patient's consent.</div><div class="circle-grid">${circleCard(escapeHtml(p.name),`<p>${p.age} years · ${escapeHtml(p.segment)}</p><p><strong>Care manager:</strong> ${escapeHtml(p.owner)}, Southlake Connect</p><p><strong>Care manager phone:</strong> 905-555-0148</p><p><strong>After-hours:</strong> Use the escalation plan in the current care plan. Call 911 for emergencies.</p><div class="circle-actions"><button class="ghost-button" data-circle-action="print">Print</button><button class="primary-button" data-circle-action="share">Prepare secure share</button><button class="ghost-button" data-circle-action="regenerate">Regenerate</button></div>`)}${circleCard("Provider quick context",`<p>${escapeHtml(p.name)} has a Southlake care manager coordinating with primary care and community services.</p><div class="circle-note warning"><strong>Privacy reminder</strong><br>This card does not replace consent for sharing clinical notes.</div><button class="ghost-button compact-button" data-circle-action="consent">Record sharing consent</button>`)}</div>`;}
+function renderCircleExtract(){const p=selectedPatient();return `<div class="circle-note warning" contenteditable="true" data-note-edit="true" style="outline:none"><strong>AI assisted draft · Staff review required</strong><br>Suggested fields are extracted from synthetic notes. Confirm before adding to the record.</div>${circleCard(`Source note · ${p.lastContact}`,`<p>“Symptoms have changed since the last contact. The family prefers care at home if symptoms can be managed. Please review the escalation plan and confirm after-hours contacts.”</p>`)}${circleCard("Suggested updates",`<div class="circle-fields"><label>Change in condition<textarea id="extractCondition">Symptoms changed since last contact; family reports increased care needs.</textarea></label><label>Patient preference<input id="extractPreference" value="Remain at home if symptoms can be managed"></label><label>Suggested follow-up<input id="extractFollowup" value="Confirm escalation plan and after-hours contact"></label></div><div class="circle-actions"><button class="ghost-button" data-circle-action="saveDraft">Save draft</button><button class="primary-button" data-circle-action="confirmExtract">Confirm and add to activity</button></div>`,'<span class="tag v2">AI draft</span>')}`;}
+function renderCirclePatientCard(){const p=selectedPatient();return `<div class="circle-note"><strong>Patient and family contact card</strong><br><span contenteditable="true" data-note-edit="true" style="outline:none"><br>Plain-language coordination summary. Share with the patient's consent.</div><div class="circle-grid">${circleCard(escapeHtml(p.name),`<p>${p.age} years · ${escapeHtml(p.segment)}</p><p><strong>Care manager:</strong> ${escapeHtml(p.owner)}, Southlake Connect</p><p><strong>Care manager phone:</strong> 905-555-0148</p><p><strong>After-hours:</strong> Use the escalation plan in the current care plan. Call 911 for emergencies.</p><div class="circle-actions"><button class="ghost-button" data-circle-action="print">Print</button><button class="primary-button" data-circle-action="share">Prepare secure share</button><button class="ghost-button" data-circle-action="regenerate">Regenerate</button></div>`)}${circleCard("Provider quick context",`<p>${escapeHtml(p.name)} has a Southlake care manager coordinating with primary care and community services.</p><div class="circle-note warning"><strong>Privacy reminder</strong><br>This card does not replace consent for sharing clinical notes.</div><button class="ghost-button compact-button" data-circle-action="consent">Record sharing consent</button>`)}</div>`;}
 function renderCircleNavigator(){const p=selectedPatient(),items=circleHandoffs[p.id]||[];return `<div class="circle-note"><strong>Navigator handoff loop</strong><br>Task completion, service connection, and patient need resolution are tracked separately.</div>${circleCard("Care manager → CHR Tasks → Navigator",`${items.length?items.map((h,i)=>`<div class="circle-row"><div class="circle-row-head"><div><strong>${escapeHtml(h.title)}</strong><small style="display:block">Care manager → CHR Tasks · Updated recently</small></div><button class="ghost-button compact-button" data-circle-action="advanceHandoff" data-index="${i}">Update outcomes</button></div><div class="circle-track"><article><strong>Task</strong><span class="circle-state ${h.task==="Closed"?"":"wait"}">${h.task}</span></article><article><strong>Service</strong><span class="circle-state ${h.service==="Connected"?"":"wait"}">${h.service}</span></article><article><strong>Need</strong><span class="circle-state ${h.need==="Met"?"":h.need==="Unmet"?"bad":"wait"}">${h.need}</span></article></div><small>${escapeHtml(h.note)}</small></div>`).join(""):'<p>No active handoffs for this patient.</p>'}<button class="primary-button compact-button" data-circle-action="newHandoff">+ Create handoff</button>`)}`;}
 function renderCircleTransition(){const p=selectedPatient(),s=circleTransitions[p.id]||{goals:2,stable:12,pcp:p.risk!=="red"},pct=Math.round(s.goals/3*100);return `<div class="circle-note ${s.goals===3&&s.pcp?"":"warning"}"><div class="circle-row-head"><div><small>Current care status</small><h2>${s.goals===3&&s.pcp?"Ready for managed follow-up review":"Active care management"}</h2></div><div><small>Next check-in</small><strong>${s.goals===3&&s.pcp?"6-month PCP check-in":"Next team huddle"}</strong></div></div></div><div class="circle-grid">${circleCard("Patient goals",`<div class="circle-row-head"><strong>${s.goals} of 3 goals met</strong><strong>${pct}%</strong></div><div class="circle-bar"><i style="width:${pct}%"></i></div><p>Review preferences, stability, and open handoffs before changing follow-up intensity.</p><button class="ghost-button compact-button" data-circle-action="goalProgress">Record goal progress</button>`)}${circleCard("Stability and primary care handoff",`<p><strong>${s.stable} days</strong> stable without escalation</p><span class="circle-state ${s.pcp?"":"wait"}">${s.pcp?"Primary care informed":"Primary care confirmation pending"}</span><p>The patient remains visible on the advanced-needs register after active care management ends.</p>`)}</div>${circleCard("Transition review",`<p>Confirm goals are met, the patient is stable, primary care owns routine follow-up, and open needs are resolved.</p><div class="circle-actions"><button class="primary-button" data-circle-action="saveTransition">Save transition review</button><button class="ghost-button" data-circle-action="reactivate">Review reactivation pathway</button></div>`)}`;}
 
@@ -4873,8 +4873,8 @@ function renderCarePlan(){
   const whyId = "rec-"+p.id;
   $("#cpRecommendation").innerHTML = `
     <strong>Recommended next step · ${p.owner} · ${p.sla} ${WHY_CLAIMS[whyId]?`<span class="why-chip" onclick="openWhyPop('${whyId}')">why?</span>`:""}</strong>
-    <p><b>Blocker:</b> ${p.blocker}</p>
-    <p>${p.recommendation}</p>
+    <p contenteditable="true" data-note-edit="true" style="outline:none"><b>Blocker:</b> ${p.blocker}</p>
+    <p contenteditable="true" data-note-edit="true" style="outline:none">${p.recommendation}</p>
     <div class="recommend-actions">
       <button class="primary-button compact-button" data-action="accept-rec">Accept</button>
       <button class="ghost-button compact-button" data-action="modify-rec">Modify</button>
@@ -4917,7 +4917,7 @@ function renderCarePlan(){
 
   $("#timeline").innerHTML = p.timeline.map(([d,detail])=>`
     <div class="timeline-item"><span class="timeline-marker"></span>
-      <div><strong>${d}</strong><br /><span class="muted">${detail}</span></div></div>`).join("");
+      <div><strong>${d}</strong><br /><span class="muted" contenteditable="true" data-note-edit="true" style="outline:none">${detail}</span></div></div>`).join("");
 
   $("#taskList").innerHTML = p.tasks.length===0
     ? `<div class="empty-state" style="padding:.5rem;font-size:.8rem">No open tasks.</div>`
@@ -5018,7 +5018,7 @@ function buildOnePagerHTML(p, context="workspace"){
       <div class="op-update-grid">
         <div class="op-block"><strong>Recent hospital / after-hours events</strong>${
           p.loopbacks.length
-            ? p.loopbacks.slice(0,3).map(lb=>`<div style="margin-bottom:.45rem"><b>${escapeHtml(lb.when)}</b><br>${escapeHtml(lb.reason)}<br><small>${escapeHtml(lb.action)}</small></div>`).join("")
+            ? p.loopbacks.slice(0,3).map(lb=>`<div style="margin-bottom:.45rem" contenteditable="true" data-note-edit="true"><b>${escapeHtml(lb.when)}</b><br>${escapeHtml(lb.reason)}<br><small>${escapeHtml(lb.action)}</small></div>`).join("")
             : "No loopbacks filed yet."
         }</div>
         <div class="op-block"><strong>Current care-plan blockers</strong>${
@@ -5101,8 +5101,8 @@ function renderLoopbackView(){
               <strong>Reason</strong>
               <p>${escapeHtml(lb.reason)}</p>
               <strong>Action taken</strong>
-              <p>${escapeHtml(lb.action)}</p>
-              ${lb.note?`<strong>Note to care manager</strong><p style="background:var(--brand-soft);padding:.5rem .7rem;border-radius:6px;border-left:3px solid var(--brand)">${escapeHtml(lb.note)}</p>`:''}
+              <p contenteditable="true" data-note-edit="true" style="outline:none">${escapeHtml(lb.action)}</p>
+              ${lb.note?`<strong>Note to care manager</strong><p style="background:var(--brand-soft);padding:.5rem;outline:none" contenteditable="true" data-note-edit="true"> .7rem;border-radius:6px;border-left:3px solid var(--brand)">${escapeHtml(lb.note)}</p>`:''}
             </div>
           </div>`).join("")
       }
@@ -7563,7 +7563,73 @@ function generateQRGrid(seed, size = 7) {
         html += '<tr><td>Consent</td><td style="color:green">✓ Active</td></tr>';
         html += '<tr><td>Circle size</td><td>9 providers + 1 family</td></tr></table>';
         html += '<p style="font-size:.8rem;color:#666;margin-top:1rem">Instructions: At your next provider visit, show this QR code on your phone. The provider will scan it and CC their consult notes to your Care Manager. You do NOT need to do anything else.</p>';
-        html += '</body></html>';
+        html += '<script>
+/* ========== UNIT TESTS (?test=1) ========== */
+(function() {
+  'use strict';
+  if (!location.search.includes('test=1')) return;
+  var results = [], passed = 0, failed = 0;
+  function assert(name, cond, detail) {
+    if (cond) { passed++; results.push({n:name, ok:true, d:detail||''}); }
+    else { failed++; results.push({n:name, ok:false, d:detail||'FAILED'}); }
+  }
+  function render() {
+    var c = document.createElement('div');
+    c.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1e293b;color:#fff;padding:1rem;z-index:99999;font-family:monospace;font-size:.8rem';
+    c.innerHTML = '<strong>\u{1F9EA} Unit Tests: ' + passed + '/' + (passed+failed) + '</strong><div style="margin-top:.5rem">' +
+      results.map(function(r){ return '<div style="padding:.2rem 0;color:' + (r.ok?'#4ade80':'#f87171') + '">' + (r.ok?'\u2705':'\u274C') + ' ' + r.n + (r.d?' \u2014 '+r.d:'') + '</div>'; }).join('') + '</div>';
+    document.body.appendChild(c);
+    console.log('Tests: ' + passed + ' pass, ' + failed + ' fail');
+  }
+  setTimeout(function() {
+    // T1: editable elements exist
+    var eds = document.querySelectorAll('[contenteditable="true"][data-note-edit]');
+    assert('Editable notes exist', eds.length >= 5, eds.length + ' found');
+    // T2: hover CSS applied
+    var style = getComputedStyle(eds[0]);
+    assert('Editable elements have position:relative', eds[0].style.position === 'relative' || eds[0].dataset.noteEdit === 'true');
+    // T3: blur handler works
+    if (eds[0]) {
+      var orig = eds[0].textContent;
+      eds[0].textContent = orig + ' [test]';
+      eds[0].dispatchEvent(new Event('blur', {bubbles:true}));
+      setTimeout(function() {
+        assert('Blur saves edit', eds[0].textContent.indexOf('[test]') !== -1, 'text updated');
+        eds[0].textContent = orig;
+        // T4: voice tab
+        var vt = document.querySelector('[data-circle-tab="voice"]');
+        if (vt) { vt.click(); }
+        setTimeout(function() {
+          var ve = document.querySelectorAll('.ve-value[contenteditable], .voice-extract-item [contenteditable]');
+          assert('Voice extraction editable', ve.length >= 2, ve.length + ' found');
+          // T5: care plan
+          var cp = document.querySelector('[data-view="carePlanView"]');
+          if (cp) cp.click();
+          setTimeout(function() {
+            var rec = document.querySelector('#cpRecommendation [contenteditable], #nextActionCard [contenteditable]');
+            assert('Care plan recommendation editable', rec !== null, rec ? 'found' : 'not found');
+            // T6: timeline
+            var tl = document.querySelectorAll('#timeline [contenteditable], .timeline-item [contenteditable]');
+            assert('Timeline entries editable', tl.length > 0, tl.length + ' found');
+            // T7: loopback
+            var lb = document.querySelector('[data-view="loopbackView"]');
+            if (lb) lb.click();
+            setTimeout(function() {
+              var lbe = document.querySelectorAll('[class*="loopback"] [contenteditable], #lbDetail [contenteditable]');
+              assert('Loopback notes editable', lbe.length > 0, lbe.length + ' found');
+              render();
+            }, 800);
+          }, 500);
+        }, 800);
+      }, 300);
+    } else {
+      assert('At least 1 editable element', false, 'none found');
+      render();
+    }
+  }, 3000);
+})();
+</script>
+</body></html>';
         w.document.write(html);
         w.document.close();
         // Render QR into the print window
