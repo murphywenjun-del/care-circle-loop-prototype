@@ -1437,7 +1437,7 @@
         <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\'navigator\']')?.click()">
           <span class="qa-icon">↔</span> Navigator
         </button>
-        <button class="quick-action" onclick="var h=document.querySelector('#qrCollapsible .collapsible-header');if(h)h.click()">
+        <button class="quick-action" onclick="openQRHub()">
           <span class="qa-icon">▣</span> QR Hub <span class="qa-badge">4/9</span>
         </button>
       </div>
@@ -7160,7 +7160,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\"navigator\"]').click()">
         <span class="qa-icon">↔</span> Navigator
       </button>
-      <button class="quick-action" onclick="toggleCollapsible(document.querySelector('#qrCollapsible .collapsible-header'))">
+      <button class="quick-action" onclick="openQRHub()">
         <span class="qa-icon">▣</span> QR Hub <span class="qa-badge">4/9</span>
       </button>
     `;
@@ -7635,6 +7635,52 @@ function generateQRGrid(seed, size = 7) {
 /* ========== STATE MUTATIONS: clicks change the page, not just a toast ========== */
 (function() {
   'use strict';
+
+
+  // ---- openQRHub: QR Hub quick action actually opens the hub ----
+  window.openQRHub = function() {
+    // 1. Go to Care Circle view
+    document.querySelectorAll('[data-view]').forEach(function(b) {
+      if (b.dataset.view === 'careCircleView') b.click();
+    });
+    // 2. Switch to circle tab
+    setTimeout(function() {
+      document.querySelectorAll('[data-circle-tab]').forEach(function(b) {
+        if (b.dataset.circleTab === 'circle') b.click();
+      });
+      // 3. Open the QR scan overlay (the scannable QR view)
+      setTimeout(function() {
+        var o = document.getElementById('qrScanOverlay');
+        if (o) {
+          o.classList.add('active');
+          // ensure a big scannable QR is rendered into the overlay box
+          try {
+            var box = o.querySelector('#qrScanBox');
+            if (box && box.innerHTML.indexOf('canvas') === -1) {
+              var qr = qrcode(0, 'M');
+              qr.addData(JSON.stringify({patient:'Margaret J. (anonymized)',cm:'Maria Okafor, RN',org:'Southlake FHT',contact:'m.okafor.circ@southlake.example'}));
+              qr.make();
+              var cv = document.createElement('canvas');
+              var n = qr.getModuleCount();
+              var cell = Math.floor(180/(n+4));
+              var total = cell*(n+4);
+              cv.width=total; cv.height=total;
+              var cx = cv.getContext('2d');
+              cx.fillStyle='#fff'; cx.fillRect(0,0,total,total);
+              cx.fillStyle='#000';
+              var off=2*cell;
+              for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(qr.isDark(r,c))cx.fillRect(off+c*cell,off+r*cell,cell,cell);
+              box.innerHTML=''; box.appendChild(cv);
+            }
+          } catch(e) { /* qrcode lib missing */ }
+        }
+        // 4. Scroll hub into view + toast
+        var hub = document.querySelector('.qr-hub');
+        if (hub) hub.scrollIntoView({ behavior:'smooth', block:'center' });
+        if (typeof showToast === 'function') showToast('\u25a0 QR Hub open \u00b7 4/9 connected \u00b7 scan the code to join the circle');
+      }, 400);
+    }, 150);
+  };
   function toast(msg) { if (typeof window.showToast === 'function') window.showToast(msg); }
 
   // Helper: update QR hub stats to match actual member states
