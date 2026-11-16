@@ -663,7 +663,7 @@
   /* ========== QR Connection Hub (Care Circle) ========== */
   .qr-hub{background:#fff;border:2px solid var(--brand);border-radius:14px;padding:1.2rem;margin-bottom:1rem}
   .qr-hub-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
-  .qr-code-box{width:80px;height:80px;border:2px solid var(--brand);border-radius:10px;display:grid;place-items:center;font-size:1.5rem;background:var(--brand-soft)}
+  .qr-code-box{width:100px;height:100px;border:2px solid var(--brand);border-radius:10px;display:flex;align-items:center;justify-content:center;background:#fff}
   .qr-hub-title{font-weight:700;font-size:1rem}.qr-hub-title small{font-weight:400;color:var(--muted)}
   .qr-hub-stats{display:flex;gap:1rem;margin-bottom:1rem}
   .qr-stat{background:var(--soft);border-radius:8px;padding:.5rem .8rem;text-align:center;min-width:80px}
@@ -778,7 +778,7 @@
   .phone-section h5{color:#93c5fd;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 .4rem}
   
   .phone-qr-card{background:#fff;border-radius:12px;padding:.8rem;text-align:center;margin-bottom:.6rem}
-  .phone-qr-card .pqqr{width:80px;height:80px;background:#1e40af;border-radius:8px;margin:0 auto .5rem;display:grid;place-items:center;color:#fff;font-size:2rem}
+  .phone-qr-card .pqqr{width:80px;height:80px;background:#fff;border-radius:8px;margin:0 auto .5rem;display:flex;align-items:center;justify-content:center}
   .phone-qr-card .pqqr-label{font-size:.72rem;font-weight:700;color:#1e293b}
   .phone-qr-card .pqqr-sub{font-size:.65rem;color:#64748b;margin-top:.15rem}
   .phone-qr-card .pqqr-share{margin-top:.5rem;background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:.35rem .8rem;font-size:.7rem;font-weight:600;cursor:pointer}
@@ -3913,7 +3913,7 @@ function renderQrHub(patientId) {
   return `
     <div class="qr-hub">
       <div class="qr-hub-header">
-        <div class="qr-code-box" data-qrsim="true">
+        <div class="qr-code-box" data-qr="southlake-care-margaret" data-qr-size="100" data-qrsim="true">
           <span>▣</span>
         </div>
         <div class="qr-hub-title">
@@ -4465,7 +4465,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <div class="phone-section">
                     <h5>My QR Card</h5>
                     <div class="phone-qr-card">
-                      <div class="pqqr" data-qr="southlake-qrcard" data-qr-size="80">▣</div>
+                      <div class="pqqr" data-qr="southlake-qrcard" data-qr-size="80" style="width:80px;height:80px"></div>
                       <div class="pqqr-label">Southlake Care Circle QR</div>
                       <div class="pqqr-sub">4 of 9 circle members connected · Last updated Jun 15</div>
                       <button class="pqqr-share" onclick="showToast('QR shared. Provider will see your CM\'s contact + consent.')">📲 Show to Provider</button>
