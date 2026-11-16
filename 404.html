@@ -1376,7 +1376,7 @@
     </div>
     <div id="qrHeaderActions"></div>
   </header>
-  <div class="public-body" id="qrBody"></div>
+  <div class="public-body" id="qrBody" data-qr="southlake-onepager-margaret" data-qr-size="160"></div>
 </section>
 
 <!-- ============ STANDALONE: NEW IDENTIFICATION ============ -->
@@ -4873,15 +4873,12 @@ function generateQRGrid(seed, size = 7) {
 
 </script>
 <script>
-// ========== REAL QR CODE GENERATOR (isolated, self-contained) ==========
-// This block is completely independent from the main app script.
-// Even if the main script has errors, QR codes will still render.
-
+// ========== REAL QR CODE GENERATOR (isolated, reliable) ==========
 (function() {
   'use strict';
   
   function makeQRCanvas(el, data, size) {
-    if (!el || !el.querySelector) return;
+    if (!el) return;
     size = size || 140;
     var n = 25, cell = Math.floor(size / (n + 4)), total = (n + 4) * cell;
     var canvas = document.createElement('canvas');
@@ -4889,7 +4886,6 @@ function generateQRGrid(seed, size = 7) {
     var ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, total, total);
     
-    // Deterministic seed
     var seed = 0;
     for (var i = 0; i < data.length; i++) {
       seed = ((seed << 5) - seed + data.charCodeAt(i)) | 0;
@@ -4901,7 +4897,6 @@ function generateQRGrid(seed, size = 7) {
     for (var r = 0; r < n; r++) {
       for (var c = 0; c < n; c++) {
         var v = 0;
-        // Finder patterns (7x7 in 3 corners)
         if (r < 7 && c < 7) {
           var ring = Math.min(r, c, 6-r, 6-c);
           v = (ring === 0 || ring === 2 || (r === 3 && c === 3)) ? 1 : 0;
@@ -4912,55 +4907,64 @@ function generateQRGrid(seed, size = 7) {
           var br = r - (n-7), ring3 = Math.min(br, c, 6-br, 6-c);
           v = (ring3 === 0 || ring3 === 2 || (br === 3 && c === 3)) ? 1 : 0;
         }
-        // Timing patterns
         else if (r === 6) { v = (c % 2 === 0) ? 1 : 0; }
         else if (c === 6) { v = (r % 2 === 0) ? 1 : 0; }
-        // Alignment pattern (version 2, at position 18,18)
         else if (r >= 16 && r <= 20 && c >= 16 && c <= 20) {
           var ar = r - 18, ac = c - 18;
           v = (ar === 0 || ar === 4 || ac === 0 || ac === 4 || (ar === 2 && ac === 2)) ? 1 : 0;
         }
-        // Data modules (deterministic from seed)
         else {
           var idx = r * n + c;
           var val = ((seed * (idx + 1) * 7919 + (seed >>> 4) * 31) | 0);
           v = ((val >>> (idx % 8)) & 1) ? 1 : 0;
         }
-        
-        if (v) {
-          ctx.fillRect(off + c * cell, off + r * cell, cell, cell);
-        }
+        if (v) ctx.fillRect(off + c * cell, off + r * cell, cell, cell);
       }
     }
-    // Dark module
     ctx.fillRect(off + 8 * cell, off + 13 * cell, cell, cell);
     
-    // Insert canvas
     el.innerHTML = '';
     el.appendChild(canvas);
     el.style.cssText = 'display:flex;align-items:center;justify-content:center;width:' + total + 'px;height:' + total + 'px;margin:auto;';
   }
   
-  // Render all QR containers
-  function renderAll() {
+  // Render QR into any element that has data-qr
+  function renderQR(el) {
+    if (!el || el.querySelector('canvas')) return;
+    var data = el.getAttribute('data-qr') || 'care-circle';
+    var sz = parseInt(el.getAttribute('data-qr-size')) || 140;
+    makeQRCanvas(el, data, sz);
+  }
+  
+  // Use MutationObserver for RELIABLE rendering (catches dynamic content)
+  var observer = new MutationObserver(function() {
     document.querySelectorAll('[data-qr]').forEach(function(el) {
-      if (el.querySelector('canvas')) return;
-      var data = el.getAttribute('data-qr') || 'care-circle';
-      var sz = parseInt(el.getAttribute('data-qr-size')) || 140;
-      makeQRCanvas(el, data, sz);
+      renderQR(el);
     });
-  }
+    // Also render the one-pager QR body
+    var qrBody = document.getElementById('qrBody');
+    if (qrBody) renderQR(qrBody);
+    // Scan overlay QR
+    var scanBox = document.getElementById('qrScanBox');
+    if (scanBox && !scanBox.querySelector('canvas')) {
+      makeQRCanvas(scanBox, 'southlake-care-margaret-j', 180);
+    }
+  });
   
-  // Run when DOM is ready
-  if (document.readyState === 'complete') {
-    setTimeout(renderAll, 500);
-  } else {
-    document.addEventListener('DOMContentLoaded', function() { setTimeout(renderAll, 1500); });
-  }
-  setTimeout(renderAll, 3000); // catch dynamically added content
-  setTimeout(renderAll, 6000); // second pass
+  observer.observe(document.body, { childList: true, subtree: true });
   
-  // QR Scan Overlay
+  // Also run immediately + on intervals to catch initial load
+  function initialRender() {
+    document.querySelectorAll('[data-qr]').forEach(function(el) { renderQR(el); });
+    var qrBody = document.getElementById('qrBody');
+    if (qrBody) renderQR(qrBody);
+  }
+  initialRender();
+  setTimeout(initialRender, 1000);
+  setTimeout(initialRender, 3000);
+  setTimeout(initialRender, 6000);
+  
+  // ===== QR Scan Overlay =====
   var ov = document.createElement('div');
   ov.className = 'qr-scan-overlay';
   ov.id = 'qrScanOverlay';
@@ -4975,6 +4979,7 @@ function generateQRGrid(seed, size = 7) {
   
   var card = document.createElement('div');
   card.style.cssText = 'background:#fff;border-radius:12px;padding:1rem;box-shadow:0 4px 16px rgba(0,0,0,.15);text-align:left';
+  
   var h3 = document.createElement('h3');
   h3.textContent = '\u2713 QR Scanned';
   h3.style.cssText = 'color:#1e40af;margin:0 0 .5rem;font-size:.95rem';
@@ -4996,7 +5001,7 @@ function generateQRGrid(seed, size = 7) {
   card.appendChild(p3);
   
   var p4 = document.createElement('p');
-  p4.innerHTML = 'CC notes to: m.okafor.circ@southlake.example<br><small style="color:#64748b">Total effort: ~10 sec \u00b7 No new system needed</small>';
+  p4.innerHTML = 'CC notes to: m.okafor.circ@southlake.example<br><small style="color:#64748b">Total effort: ~10 sec \u00b7 No new system</small>';
   p4.style.cssText = 'font-size:.72rem;color:#64748b;margin:0 0 .6rem';
   card.appendChild(p4);
   
@@ -5016,12 +5021,9 @@ function generateQRGrid(seed, size = 7) {
   ov.appendChild(wrap);
   document.body.appendChild(ov);
   
-  // Render QR in overlay
-  setTimeout(function() { makeQRCanvas(qrBox, 'southlake-care-margaret-j', 180); }, 500);
-  
-  // Click handlers
+  // Click any QR element to show scan view
   document.addEventListener('click', function(e) {
-    if (e.target.closest('.pqqr-share') || e.target.closest('.qr-code-box') || e.target.closest('[data-qr]')) {
+    if (e.target.closest('[data-qr]') || e.target.closest('.qr-code-box') || e.target.closest('.pqqr-share') || e.target.closest('#qrBody')) {
       ov.classList.add('active');
     }
   }, true);
@@ -5031,7 +5033,7 @@ function generateQRGrid(seed, size = 7) {
     var btn = e.target.closest('button');
     if (btn && !btn.onclick && !btn.closest('#qrScanOverlay') && !btn.closest('.voice-actions')) {
       var label = btn.textContent.trim().replace(/\s+/g, ' ').substring(0, 40);
-      if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn') && !btn.classList.contains('qrm-share')) {
+      if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn') && !btn.classList.contains('qrm-share') && !btn.classList.contains('pcm-btn')) {
         e.preventDefault();
         if (typeof showToast === 'function') {
           showToast('"' + label + '" \u2014 action triggered');
