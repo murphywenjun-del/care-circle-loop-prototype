@@ -1351,13 +1351,24 @@
     <section id="careCircleView" class="module-view">
       <div class="info-banner"><div><strong>Care Circle & Loop</strong><br><span class="muted">Shared coordination across the patient, family, primary care, hospital, and community providers.</span></div><button class="primary-button compact-button" data-circle-action="invite">+ Invite to circle</button></div>
       <div class="circle-workspace">
-        <aside class="card circle-roster"><div class="card-title"><div><h3>Patients</h3><small>Panel members</small></div><span class="tag">5</span></div><div id="circlePatientList"></div><div class="circle-roster-note">Synthetic demo data · patient access follows your role.</div></aside>
+        <aside class="card circle-roster"><div class="card-title"><div><h3>Patients</h3><small>Panel members</small></div><span class="tag">5</span></div><div id="circlePatientList"></div><div class="circle-roster-note">Synthetic demo data · patient access follows your role.</div>
+        <!-- QR Connection Summary -->
+        <div style="margin-top:1rem;padding:.8rem 1rem;border:2px solid var(--brand);border-radius:10px;background:var(--brand-soft)">
+          <div style="display:flex;align-items:center;gap:.8rem">
+            <div style="width:50px;height:50px;background:#fff;border:2px solid var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center" data-qr="southlake-qr-hub-summary" data-qr-size="50"></div>
+            <div>
+              <strong style="font-size:.82rem">QR Connection</strong>
+              <p style="font-size:.72rem;color:var(--muted);margin:.15rem 0">4/9 connected · 3 CC'd</p>
+              <button class="compact-button" style="font-size:.68rem;padding:.2rem .5rem" onclick="document.getElementById('qrCollapsible')?.querySelector('.collapsible-header')?.click()">View Hub →</button>
+            </div>
+          </div>
+        </div>
+    </aside>
         <div class="circle-main"><div id="circlePatientBanner" class="card circle-patient-banner"></div>
           <div class="circle-tabs" role="tablist" aria-label="Care Circle features">
             <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Panel</button><button class="circle-tab" data-circle-tab="patient-control">Patient Control</button>
           </div>
-          <div id="circleFeaturePanel">
-      <div class="quick-actions" id="quickActionsStrip">
+          <div class="quick-actions" id="quickActionsStrip">
         <button class="quick-action primary" onclick="document.querySelector('[data-circle-tab=\'voice\']')?.click()">
           <span class="qa-icon">🎙</span> Voice Populate <span class="qa-badge">primary</span>
         </button>
@@ -1374,6 +1385,8 @@
           <span class="qa-icon">▣</span> QR Hub <span class="qa-badge">4/9</span>
         </button>
       </div>
+          <div id="circleFeaturePanel">
+      
 </div>
         </div>
       </div>
