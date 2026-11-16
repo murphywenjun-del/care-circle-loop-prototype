@@ -7793,6 +7793,44 @@ function generateQRGrid(seed, size = 7) {
     }, 200);
   };
 
+  // ---- S8 routing: each CM task jumps to the real prototype feature it lives in ----
+  window.openVoiceVisit = function() {
+    document.querySelectorAll('[data-view]').forEach(function(b){ if (b.dataset.view === 'commandView') b.click(); });
+    setTimeout(function(){
+      var sv = document.getElementById('startVisitBtn');
+      if (sv) sv.click();
+      var p = document.getElementById('inlineVoicePanel');
+      if (p) p.scrollIntoView({ behavior:'smooth', block:'center' });
+      if (typeof showToast === 'function') showToast('\ud83c\udf99 Recording this assessment in Voice Visit');
+    }, 300);
+  };
+  window.openCarePlanEscalation = function() {
+    document.querySelectorAll('[data-view]').forEach(function(b){ if (b.dataset.view === 'carePlanView') b.click(); });
+    setTimeout(function(){
+      var el = Array.from(document.querySelectorAll('li, h4, h5, .cp-step, [class*="timeline"] *')).find(function(x){ return /Escalation/i.test(x.textContent) && x.textContent.length < 60; });
+      if (el) { el.style.background = 'var(--amber-bg)'; el.style.transition='background .4s'; el.scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(function(){ el.style.background=''; }, 1600); }
+      if (typeof showToast === 'function') showToast('\u2192 Care Plan \u00b7 Escalation plan');
+    }, 400);
+  };
+  window.openCirclePartner = function() {
+    document.querySelectorAll('[data-view]').forEach(function(b){ if (b.dataset.view === 'careCircleView') b.click(); });
+    setTimeout(function(){
+      document.querySelectorAll('[data-circle-tab]').forEach(function(b){ if (b.dataset.circleTab === 'circle') b.click(); });
+      setTimeout(function(){
+        var hub = document.querySelector('.qr-hub');
+        if (hub) hub.scrollIntoView({ behavior:'smooth', block:'center' });
+        var m = Array.from(document.querySelectorAll('.qrm-name')).find(function(n){ return /St\. Joseph/.test(n.textContent); });
+        if (m) { var card = m.closest('.qr-member'); card.style.boxShadow = '0 0 0 2px var(--brand)'; card.scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(function(){ card.style.boxShadow=''; }, 1800); }
+        if (typeof showToast === 'function') showToast('\ud83d\udd35 Opened Care Circle \u00b7 St. Joseph\'s partner to connect');
+      }, 300);
+    }, 200);
+  };
+  window.openLoopback = function() {
+    document.querySelectorAll('[data-view]').forEach(function(b){ if (b.dataset.view === 'loopbackView') b.click(); });
+    if (typeof showToast === 'function') showToast('\ud83d\udd1c Loopbacks \u00b7 outcome tracked here');
+  };
+
+
   // ---- Clinical 5-task workflow advance: complete one CM task per click ----
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('.cl-advance');
