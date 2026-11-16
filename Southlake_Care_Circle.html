@@ -1356,7 +1356,25 @@
           <div class="circle-tabs" role="tablist" aria-label="Care Circle features">
             <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Panel</button><button class="circle-tab" data-circle-tab="patient-control">Patient Control</button>
           </div>
-          <div id="circleFeaturePanel"></div>
+          <div id="circleFeaturePanel">
+      <div class="quick-actions" id="quickActionsStrip">
+        <button class="quick-action primary" onclick="document.querySelector('[data-circle-tab=\'voice\']')?.click()">
+          <span class="qa-icon">🎙</span> Voice Populate <span class="qa-badge">primary</span>
+        </button>
+        <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\'consent\']')?.click()">
+          <span class="qa-icon">✓</span> Consent
+        </button>
+        <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\'patient-control\']')?.click()">
+          <span class="qa-icon">📱</span> Patient View
+        </button>
+        <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\'navigator\']')?.click()">
+          <span class="qa-icon">↔</span> Navigator
+        </button>
+        <button class="quick-action" onclick="var h=document.querySelector('#qrCollapsible .collapsible-header');if(h)h.click()">
+          <span class="qa-icon">▣</span> QR Hub <span class="qa-badge">4/9</span>
+        </button>
+      </div>
+</div>
         </div>
       </div>
     </section>
@@ -5031,7 +5049,7 @@ function generateQRGrid(seed, size = 7) {
   // Generic button feedback
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('button');
-    if (btn && !btn.onclick && !btn.closest('#qrScanOverlay') && !btn.closest('.voice-actions')) {
+    if (btn && !btn.onclick && !btn.closest('#qrScanOverlay') && !btn.closest('.voice-actions') && !btn.closest('[class*="nav"]') && !btn.closest('[class*="sidebar"]') && !btn.closest('[class*="main-nav"]')) {
       var label = btn.textContent.trim().replace(/\s+/g, ' ').substring(0, 40);
       if (label && label.length > 2 && !btn.classList.contains('tt-btn') && !btn.classList.contains('demo-tour-btn') && !btn.classList.contains('qrm-share') && !btn.classList.contains('pcm-btn')) {
         e.preventDefault();
