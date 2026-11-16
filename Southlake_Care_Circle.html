@@ -1355,7 +1355,7 @@
         <!-- QR Connection Summary -->
         <div style="margin-top:1rem;padding:.8rem 1rem;border:2px solid var(--brand);border-radius:10px;background:var(--brand-soft)">
           <div style="display:flex;align-items:center;gap:.8rem">
-            <div style="width:50px;height:50px;background:#fff;border:2px solid var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center" data-qr="southlake-qr-hub-summary" data-qr-size="50"></div>
+            <div style="width:100px;height:100px;background:#fff;border:2px solid var(--brand);border-radius:8px;display:flex;align-items:center;justify-content:center" data-qr="southlake-qr-hub-summary" data-qr-size="100"></div>
             <div>
               <strong style="font-size:.82rem">QR Connection</strong>
               <p style="font-size:.72rem;color:var(--muted);margin:.15rem 0">4/9 connected · 3 CC'd</p>
@@ -7387,14 +7387,14 @@ function generateQRGrid(seed, size = 7) {
       card.style.cssText = 'margin-top:.8rem;padding:.6rem .8rem;border:2px solid var(--brand);border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;gap:.6rem';
       var qrBox = document.createElement('div');
       qrBox.setAttribute('data-qr', 'southlake-qr-hub-summary');
-      qrBox.setAttribute('data-qr-size', '50');
-      qrBox.style.cssText = 'width:50px;height:50px;background:#fff;border:2px solid var(--brand);border-radius:6px';
+      qrBox.setAttribute('data-qr-size', '100');
+      qrBox.style.cssText = 'width:100px;height:100px;background:#fff;border:2px solid var(--brand);border-radius:8px';
       var info = document.createElement('div');
       info.innerHTML = '<strong style="font-size:.78rem">QR Connection</strong><br><small style="font-size:.68rem;color:var(--muted)">4/9 connected \u00b7 3 CC\'d</small>';
       card.appendChild(qrBox);
       card.appendChild(info);
       roster.appendChild(card);
-      setTimeout(function() { makeQRCanvas(qrBox, 'southlake-qr-hub-summary', 50); }, 300);
+      setTimeout(function() { makeQRCanvas(qrBox, 'southlake-qr-hub-summary', 100); }, 300);
     }
   }
   // Run periodically to catch after any innerHTML wipe
