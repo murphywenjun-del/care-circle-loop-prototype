@@ -6298,51 +6298,57 @@ document.addEventListener('click', function(e) {
 function renderClinicalPanel(patientId) {
   var p = (typeof patients !== "undefined" && patients.find ? patients.find(function(x){return x.id===patientId;}) : null) || (typeof selectedPatient === "function" ? selectedPatient() : null);
   var nm = p ? p.name : "John Karras";
+  // 5 CM tasks: state 0=done,1=active,2=pending
+  var T = [
+    { t: "Triage the call", note: "≈2 min · no new system", sub: [
+      "Log the report — who / when / what changed",
+      "3 quick safety checks: any fall? meds changed? eating & drinking?" ] },
+    { t: "In-scope assessment", note: "RN scope · NOT a diagnosis", sub: [
+      "Re-screen: AMT, confusion timeline, O₂, pain, falls",
+      "Compare to last baseline (Jun 3)" ] },
+    { t: "Make the escalation call", note: "documented + audited", sub: [
+      "Judgment: new + progressive → needs a clinician look",
+      "Write the reason into the record (audit trail)" ] },
+    { t: "Contact the right partner", note: "from John's circle", sub: [
+      "Chose St. Joseph's acute team",
+      "Agreed options: home visit / clinic / ED" ] },
+    { t: "Notify & close the loop", note: "family + circle", sub: [
+      "Told daughter what's happening & when",
+      "Circle updated · follow-up set for Jun 20" ] }
+  ];
+  var rows = T.map(function(x, i){
+    var st = i===0 ? 'done' : (i===1 ? 'active' : 'pending');
+    var mark = st==='done' ? '\u2713' : (st==='active' ? '\u25b6' : '\u25cb');
+    var color = st==='done' ? 'var(--green)' : (st==='active' ? 'var(--amber)' : 'var(--muted)');
+    return '<div class="cl-task '+st+'" data-cl-task="'+(i+1)+'" style="border-left:3px solid '+color+'">'
+      + '<div style="display:flex;gap:.5rem;align-items:flex-start">'
+      +   '<span style="font-weight:800;color:'+color+'">'+mark+'</span>'
+      +   '<div style="flex:1"><strong style="font-size:.86rem">'+(i+1)+'. '+x.t+'</strong> <small style="color:var(--muted);font-size:.68rem">'+x.note+'</small>'
+      +     '<ul style="margin:.35rem 0 0 .1rem;list-style:none;font-size:.78rem;color:var(--ink-2,#475569)">'
+      +     x.sub.map(function(s){ return '<li style="margin:.15rem 0">\u00b7 '+s+'</li>'; }).join('')
+      +     '</ul></div></div></div>';
+  }).join('');
   return `
     <div class="card">
       <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.2rem">
-        <h3 style="margin:0;flex:1">🩺 A change was flagged — what happened next?</h3>
-        <span class="risk-pill low">Within RN scope</span>
+        <h3 style="margin:0;flex:1">🩺 Family flagged a change — CM's workflow</h3>
+        <span class="risk-pill low">In RN scope</span>
       </div>
       <div style="font-size:.82rem;color:var(--muted);margin-bottom:.6rem">
-        This is the part that makes a Care Manager <strong style="color:var(--ink)">more than a scheduler</strong>: she notices / is told about a change, checks it <em>in her clinical scope</em>, then routes it to the right clinical team.
+        What a Care Manager <strong style="color:var(--ink)">actually does</strong> — 5 concrete tasks. She assesses in scope and routes to the right clinical team; she does not diagnose.
       </div>
-
       <div class="cl-trigger">
-        <span class="cl-trigger-badge">📞 09:14</span>
-        <div><strong>Daughter called:</strong> "Dad seems more confused than usual." — <em>within service hours</em></div>
+        <span class="cl-trigger-badge">📞 09:14 · logged</span>
+        <div><strong>Daughter called:</strong> "Dad seems more confused than usual." — <em>auto-logged, no CM work here</em></div>
       </div>
-
-      <div class="cl-steps">
-        <div class="nfh-step done" data-cl-step="1">
-          <h5>① Maria checked it herself</h5>
-          <p>5 quick questions · confusion up from baseline · <strong>she did NOT diagnose</strong> — she judged "this needs a clinician look"</p>
-          <span class="nfh-actor">Maria (RN)</span>
-          <div class="nfh-time">09:20 · in scope</div>
-        </div>
-        <div class="nfh-arrow">→</div>
-        <div class="nfh-step active" data-cl-step="2">
-          <h5>② Maria rang the right team</h5>
-          <p>→ St. Joseph's acute team · offered 3 ways to see John: <strong>home visit / clinic / ED</strong></p>
-          <span class="nfh-actor">Maria → Hospital partner</span>
-          <div class="nfh-time">09:31 · choosing setting</div>
-        </div>
-        <div class="nfh-arrow">→</div>
-        <div class="nfh-step pending" data-cl-step="3">
-          <h5>③ Everyone's in the loop</h5>
-          <p>Home assessment booked · <strong>daughter + circle told</strong> what's happening and when</p>
-          <span class="nfh-actor">System → CM + family</span>
-          <div class="nfh-time">Jun 20 · will confirm back</div>
-        </div>
+      <div style="display:grid;gap:.5rem;margin:.7rem 0" data-cl-tasks>
+        ${rows}
       </div>
-
       <div class="cl-result" data-cl-result>
-        <span>✅</span><div><strong>Handled:</strong> John seen at home Jun 20 · daughter + circle notified. Maria flagged, routed, and followed up — without overstepping her scope.</div>
+        <span>✅</span><div><strong>All 5 tasks done.</strong> John seen at home Jun 20 · daughter + circle notified · PHIPA audit logged. <a href="#" style="color:var(--brand)" data-cl-link>Care Plan: Escalation plan</a></div>
       </div>
-
       <div class="cl-disclaimer">Care pathways depend on the patient's needs, available services and clinical judgment. Maria acts within RN scope — she does not diagnose, and does not replace his doctor or the clinical team.</div>
-
-      <button class="primary-button compact-button cl-advance" data-cl-advance="${nm}">▶ Advance: Maria confirmed the hospital will see him →</button>
+      <button class="primary-button compact-button cl-advance" data-cl-advance="${nm}">▶ Complete task 2 (In-scope assessment)</button>
     </div>
   `;
 }
@@ -7782,64 +7788,46 @@ function generateQRGrid(seed, size = 7) {
     }, 200);
   };
 
-  // ---- Clinical 3-step advance: flips step states, not just a toast ----
+  // ---- Clinical 5-task workflow advance: complete one CM task per click ----
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('.cl-advance');
     if (!btn) return;
     var card = btn.closest('.card');
     if (!card) return;
-    var s1 = card.querySelector('[data-cl-step="1"]');
-    var s2 = card.querySelector('[data-cl-step="2"]');
-    var s3 = card.querySelector('[data-cl-step="3"]');
+    var tasks = Array.from(card.querySelectorAll('[data-cl-task]'));
     var result = card.querySelector('[data-cl-result]');
-    var step = btn.dataset.clStage || '0';
-    if (step === '0') {
-      // advance to "hospital partner confirmed"
-      s2.classList.remove('active'); s2.classList.add('done');
-      s3.classList.remove('pending'); s3.classList.add('active');
-      btn.textContent = 'Confirm outcome \u2192';
-      btn.dataset.clStage = '1';
-      if (typeof showToast === 'function') showToast('\u2705 Hospital partner confirmed home assessment Jun 20 \u00b7 waiting on outcome');
-    } else if (step === '1') {
-      s3.classList.remove('active'); s3.classList.add('done');
-      btn.textContent = '\u2713 Loop closed';
-      btn.disabled = true;
-      btn.style.background = 'var(--muted)';
-      if (result) result.style.display = 'flex';
-      if (typeof showToast === 'function') showToast('\u2705 Clinical loop closed \u00b7 daughter + circle notified \u00b7 PHIPA audit entry logged');
+    var stage = parseInt(btn.dataset.clStage || '1', 10); // which task is currently active
+    var names = ['','In-scope assessment','Escalation call','Contact the right partner','Notify & close the loop'];
+    if (stage <= 4) {
+      // mark current active task done, activate next
+      var cur = tasks[stage-1];
+      cur.className = cur.className.replace('active','done');
+      cur.querySelector('span').textContent = '\u2713';
+      cur.style.borderLeftColor = 'var(--green)';
+      var nxt = tasks[stage];
+      if (nxt) {
+        nxt.className = nxt.className.replace('pending','active');
+        nxt.querySelector('span').textContent = '\u25b6';
+        nxt.style.borderLeftColor = 'var(--amber)';
+      }
+      stage++;
+      btn.dataset.clStage = String(stage);
+      if (stage <= 4) {
+        btn.textContent = '\u25b6 Complete task ' + (stage+1) + ' (' + names[stage] + ')';
+        if (typeof showToast === 'function') showToast('\u2713 Task ' + stage + ' done: ' + names[stage-1] + ' \u2014 next: ' + names[stage]);
+      } else {
+        // all done
+        btn.textContent = '\u2713 Workflow complete';
+        btn.disabled = true;
+        btn.style.background = 'var(--muted)';
+        if (result) result.style.display = 'flex';
+        if (typeof showToast === 'function') showToast('\u2705 All 5 CM tasks complete \u00b7 John seen Jun 20 \u00b7 PHIPA audit logged');
+        var lk = result ? result.querySelector('[data-cl-link]') : null;
+        if (lk) lk.onclick = function(ev){ ev.preventDefault(); document.querySelectorAll('[data-view]').forEach(function(b){ if (b.dataset.view === 'carePlanView') b.click(); }); if (typeof showToast === 'function') showToast('\u2192 Care Plan: Escalation plan'); };
+      }
     }
     e.stopPropagation();
   }, true);
-
-  function toast(msg) { if (typeof window.showToast === 'function') window.showToast(msg); }
-
-  // Helper: update QR hub stats to match actual member states
-  function syncQRStats() {
-    document.querySelectorAll('.qr-hub').forEach(function(hub) {
-      var connected = hub.querySelectorAll('.qr-member.connected').length;
-      var pending = hub.querySelectorAll('.qr-member.pending').length;
-      var total = connected + pending;
-      var stats = hub.querySelectorAll('.qr-stat');
-      if (stats[0]) stats[0].querySelector('strong').textContent = String(connected);
-      if (stats[1]) stats[1].querySelector('strong').textContent = String(pending);
-      // header summary
-      var head = hub.querySelector('.ch-sub');
-      if (head) head.textContent = connected + ' connected \u00b7 ' + pending + ' pending \u00b7 3 notes CC\'d this month';
-      var stat = hub.querySelector('.ch-stat');
-      if (stat) stat.textContent = connected + '/' + total;
-    });
-    // roster summary card
-    document.querySelectorAll('[data-qr="southlake-qr-hub-summary"]').forEach(function(box) {
-      var card = box.closest('div');
-      var info = card && card.querySelector('small');
-      var hub = document.querySelector('.qr-hub');
-      if (hub && info) {
-        var c = hub.querySelectorAll('.qr-member.connected').length;
-        var p = hub.querySelectorAll('.qr-member.pending').length;
-        info.textContent = c + '/' + (c+p) + ' connected \u00b7 ' + p + ' pending';
-      }
-    });
-  }
 
   // ---- 1. QR "Share": flip a pending member to connected, update stats ----
   document.addEventListener('click', function(e) {
