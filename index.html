@@ -7999,6 +7999,45 @@ function generateQRGrid(seed, size = 7) {
     e.stopPropagation();
   }, true);
 
+  // ---- Worklist: patient name → select; chevron → expand row; priority dot → why-this-priority ----
+  document.addEventListener('click', function(e) {
+    var pn = e.target.closest('.pname');
+    if (pn) {
+      document.querySelectorAll('.worklist-row, .row-item').forEach(function(r){ r.classList.remove('selected'); });
+      var row = pn.closest('.worklist-row, .row-item, li, .card');
+      if (row) row.classList.add('selected');
+      var nm = pn.textContent.trim().split(/\s+/)[0];
+      toast('\u25b6 ' + nm + ' selected \u2014 full card loaded \u00b7 3 fields auto-filled');
+      e.stopPropagation();
+      return;
+    }
+    var chev = e.target.closest('.chev');
+    if (chev) {
+      var row2 = chev.closest('.worklist-row, .row-item, li, .card, [class*="row"]');
+      var detail = row2 ? row2.querySelector('.row-detail, [class*="expand"], .action-detail') : null;
+      if (detail) {
+        var open = detail.style.display !== 'none';
+        detail.style.display = open ? 'none' : 'block';
+        chev.textContent = open ? '\u203a' : '\u2039';
+        if (chev.dataset.orig) chev.textContent = chev.dataset.orig;
+        toast(open ? 'row collapsed' : 'row expanded \u2014 task detail shown');
+      } else {
+        // no nested detail: flash the row
+        if (row2) { row2.style.background = 'var(--brand-bg)'; setTimeout(function(){ row2.style.background=''; }, 600); }
+        toast('task detail \u2014 no sub-items, row highlighted');
+      }
+      e.stopPropagation();
+      return;
+    }
+    var pdot = e.target.closest('.priority-dot');
+    if (pdot) {
+      var pcolor = pdot.className.indexOf('red') > -1 ? 'High' : pdot.className.indexOf('amber') > -1 ? 'Elevated' : 'Standard';
+      toast('\u25cf ' + pcolor + ' priority \u00b7 driver: recent ED use + ACP gap \u00b7 <a href="#" style="color:var(--brand)">adjust</a>');
+      e.stopPropagation();
+      return;
+    }
+  }, true);
+
   // CSS for new states (row-closed, confirm/disabled)
   var st = document.createElement('style');
   st.textContent = '.row-closed .pname strong{ text-decoration: line-through; color: var(--muted); } ' +
