@@ -858,6 +858,13 @@
   .nfh-step .nfh-time{font-size:.65rem;color:var(--muted);margin-top:.3rem}
   .nfh-arrow{display:flex;align-items:center;justify-content:center;width:30px;font-size:1.2rem;color:var(--muted);padding-top:1.5rem}
   .nfh-result{display:flex;align-items:center;gap:.5rem;margin-top:.8rem;padding:.5rem .8rem;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:.8rem;color:#065f46}
+  .cl-trigger{display:flex;gap:.5rem;align-items:flex-start;background:#fff7ed;border:1px solid var(--amber);border-radius:10px;padding:.6rem .8rem;margin:.6rem 0;font-size:.8rem}
+  .cl-trigger-badge{background:var(--amber);color:#fff;border-radius:999px;padding:.15rem .5rem;font-size:.7rem;font-weight:700;white-space:nowrap}
+  .cl-disclaimer{margin-top:.8rem;padding:.5rem .7rem;background:var(--card,#fff);border:1px dashed var(--line);border-radius:8px;font-size:.72rem;color:var(--muted);font-style:italic}
+  .cl-steps{display:flex;gap:.4rem;align-items:stretch;margin:.7rem 0;flex-wrap:wrap}
+  .cl-result{display:none;align-items:center;gap:.5rem;margin-top:.8rem;padding:.5rem .8rem;background:#f0fdf4;border:1px solid var(--green);border-radius:10px;font-size:.8rem}
+  .cl-advance{margin-top:.4rem}
+
   .nfh-result .nfr-icon{font-size:1.1rem}
   
   .nav-handoff-list{display:grid;gap:.5rem;margin-top:1rem}
@@ -1422,7 +1429,7 @@
     </aside>
         <div class="circle-main"><div id="circlePatientBanner" class="card circle-patient-banner"></div>
           <div class="circle-tabs" role="tablist" aria-label="Care Circle features">
-            <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Panel</button><button class="circle-tab" data-circle-tab="patient-control">Patient Control</button>
+            <button class="circle-tab active" data-circle-tab="circle">Care Circle</button><button class="circle-tab" data-circle-tab="voice">Voice Populate</button><button class="circle-tab" data-circle-tab="consent">Consent &amp; Access</button><button class="circle-tab" data-circle-tab="patientCard">Patient Card</button><button class="circle-tab" data-circle-tab="navigator">Navigator Panel</button><button class="circle-tab" data-circle-tab="clinical">🩺 Clinical</button><button class="circle-tab" data-circle-tab="patient-control">Patient Control</button>
           </div>
           <div class="quick-actions" id="quickActionsStrip">
         <button class="quick-action primary" onclick="document.querySelector('[data-circle-tab=\'voice\']')?.click()">
@@ -1437,6 +1444,7 @@
         <button class="quick-action" onclick="document.querySelector('[data-circle-tab=\'navigator\']')?.click()">
           <span class="qa-icon">↔</span> Navigator
         </button>
+        <button class="quick-action" onclick="openClinicalLoop()" style="border-left:3px solid var(--amber)"><span class="qa-icon">📞</span> Family flags a change</button>
         <button class="quick-action" onclick="openQRHub()">
           <span class="qa-icon">▣</span> QR Hub <span class="qa-badge">4/9</span>
         </button>
@@ -4629,7 +4637,7 @@ function renderCareCircle(){
   const renderers={circle:renderCircleOverview,extract:renderCircleExtract,patientCard:renderCirclePatientCard,navigator:renderCircleNavigator,transition:renderCircleTransition,
   voice:function(){ return (typeof renderVoicePanel === "function") ? renderVoicePanel(p.id) : "<div class=\"card\"><h3>🎙 Voice Populate</h3><p class=\"muted\">Live conversation to auto-extract. CM just confirms.</p></div>";},
   consent:function(){ return (typeof renderConsentPanel === "function") ? renderConsentPanel(p.id) : "<div class=\"card\"><h3>✓ Consent &amp; Access</h3><p class=\"muted\">Patient controls who sees their circle.</p></div>";},
-  "patient-control":function(){ return "<div class=\"card\"><h3>📱 Patient Control</h3><p class=\"muted\">Patient decides who is in their circle. See the phone mockup in the demo tour.</p></div>";}};
+  "patient-control":function(){ return "<div class=\"card\"><h3>📱 Patient Control</h3><p class=\"muted\">Patient decides who is in their circle. See the phone mockup in the demo tour.</p></div>";},clinical:function(){ return (typeof renderClinicalPanel === "function") ? renderClinicalPanel(p.id) : "<div class=\"card\"><h3>🩺 Clinical Assessment</h3><p class=\"muted\">Family-reported change → CM in-scope assessment → hospital partner coordination.</p></div>";}};
   $("#circleFeaturePanel").innerHTML=renderers[circleTab]();
 }
 function circleCard(title,content,extra=""){return `<article class="circle-card"><div class="card-title"><h3>${title}</h3>${extra}</div>${content}</article>`;}
@@ -6287,6 +6295,50 @@ document.addEventListener('click', function(e) {
 
 
 /* ========== QR CONNECTION HUB ========== */
+function renderClinicalPanel(patientId) {
+  var p = (typeof patients !== "undefined" && patients.find ? patients.find(function(x){return x.id===patientId;}) : null) || (typeof selectedPatient === "function" ? selectedPatient() : null);
+  var nm = p ? p.name : "John Karras";
+  return `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <h3 style="margin:0">🩺 Clinical Assessment · 3-Step Loop</h3>
+        <span class="risk-pill low">Within RN scope</span>
+      </div>
+      <div class="cl-trigger">
+        <span class="cl-trigger-badge">📞 09:14 · within service hours</span>
+        <div><strong>Daughter reported:</strong> "Dad seems more confused than usual today." — Maria listens, then asks relevant clinical questions <em>within her RN scope</em> (not a diagnosis).</div>
+      </div>
+      <div class="cl-steps">
+        <div class="nfh-step done" data-cl-step="1">
+          <h5>1. In-scope check</h5>
+          <p>Maria: 5 quick questions · AMT 22/30 (↓ from 26 baseline) · O₂ 94% · pain 2/10 → flags "further clinical assessment needed"</p>
+          <span class="nfh-actor">Maria (RN)</span>
+          <div class="nfh-time">09:20 · within RN scope</div>
+        </div>
+        <div class="nfh-arrow">→</div>
+        <div class="nfh-step active" data-cl-step="2">
+          <h5>2. Hospital partner</h5>
+          <p>Maria → St. Joseph's acute team · discussing assessment options: home visit vs clinic vs ED</p>
+          <span class="nfh-actor">Maria → Hospital partner</span>
+          <div class="nfh-time">09:31 · in progress</div>
+        </div>
+        <div class="nfh-arrow">→</div>
+        <div class="nfh-step pending" data-cl-step="3">
+          <h5>3. Outcome → family + circle</h5>
+          <p>Home assessment scheduled Jun 20 · daughter + circle updated</p>
+          <span class="nfh-actor">System → CM + family</span>
+          <div class="nfh-time">expected Jun 20</div>
+        </div>
+      </div>
+      <div class="cl-result" data-cl-result>
+        <span>✅</span><div><strong>Loop closed:</strong> assessment booked, daughter + circle notified. CM didn't diagnose — she assessed in scope and coordinated the right clinical team.</div>
+      </div>
+      <div class="cl-disclaimer">Clinical assessment and care pathways depend on patient needs, available services and clinical judgment. Maria acts within RN scope — she does not diagnose or replace the clinical team.</div>
+      <button class="primary-button compact-button cl-advance" data-cl-advance="${nm}">Advance clinical loop →</button>
+    </div>
+  `;
+}
+
 function renderQrHub(patientId) {
   const p = patients.find(x => x.id === patientId) || patients[0];
   const team = p.team || [];
@@ -7681,6 +7733,49 @@ function generateQRGrid(seed, size = 7) {
       }, 400);
     }, 150);
   };
+
+  // ---- openClinicalLoop: worklist "Family flags a change" opens the clinical tab ----
+  window.openClinicalLoop = function() {
+    document.querySelectorAll('[data-view]').forEach(function(b){ if (b.dataset.view === 'careCircleView') b.click(); });
+    setTimeout(function(){
+      document.querySelectorAll('[data-circle-tab]').forEach(function(b){ if (b.dataset.circleTab === 'clinical') b.click(); });
+      setTimeout(function(){
+        var panel = document.querySelector('.cl-trigger');
+        if (panel) panel.scrollIntoView({ behavior:'smooth', block:'center' });
+        if (typeof showToast === 'function') showToast('\ud83d\udcde Family-reported change \u00b7 CM assessing in scope \u00b7 not a diagnosis');
+      }, 400);
+    }, 200);
+  };
+
+  // ---- Clinical 3-step advance: flips step states, not just a toast ----
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.cl-advance');
+    if (!btn) return;
+    var card = btn.closest('.card');
+    if (!card) return;
+    var s1 = card.querySelector('[data-cl-step="1"]');
+    var s2 = card.querySelector('[data-cl-step="2"]');
+    var s3 = card.querySelector('[data-cl-step="3"]');
+    var result = card.querySelector('[data-cl-result]');
+    var step = btn.dataset.clStage || '0';
+    if (step === '0') {
+      // advance to "hospital partner confirmed"
+      s2.classList.remove('active'); s2.classList.add('done');
+      s3.classList.remove('pending'); s3.classList.add('active');
+      btn.textContent = 'Confirm outcome \u2192';
+      btn.dataset.clStage = '1';
+      if (typeof showToast === 'function') showToast('\u2705 Hospital partner confirmed home assessment Jun 20 \u00b7 waiting on outcome');
+    } else if (step === '1') {
+      s3.classList.remove('active'); s3.classList.add('done');
+      btn.textContent = '\u2713 Loop closed';
+      btn.disabled = true;
+      btn.style.background = 'var(--muted)';
+      if (result) result.style.display = 'flex';
+      if (typeof showToast === 'function') showToast('\u2705 Clinical loop closed \u00b7 daughter + circle notified \u00b7 PHIPA audit entry logged');
+    }
+    e.stopPropagation();
+  }, true);
+
   function toast(msg) { if (typeof window.showToast === 'function') window.showToast(msg); }
 
   // Helper: update QR hub stats to match actual member states
