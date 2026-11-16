@@ -6300,44 +6300,53 @@ function renderClinicalPanel(patientId) {
   var nm = p ? p.name : "John Karras";
   return `
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-        <h3 style="margin:0">🩺 Clinical Assessment · 3-Step Loop</h3>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.2rem">
+        <h3 style="margin:0;flex:1">🩺 A change was flagged — what happened next?</h3>
         <span class="risk-pill low">Within RN scope</span>
       </div>
-      <div class="cl-trigger">
-        <span class="cl-trigger-badge">📞 09:14 · within service hours</span>
-        <div><strong>Daughter reported:</strong> "Dad seems more confused than usual today." — Maria listens, then asks relevant clinical questions <em>within her RN scope</em> (not a diagnosis).</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:.6rem">
+        This is the part that makes a Care Manager <strong style="color:var(--ink)">more than a scheduler</strong>: she notices / is told about a change, checks it <em>in her clinical scope</em>, then routes it to the right clinical team.
       </div>
+
+      <div class="cl-trigger">
+        <span class="cl-trigger-badge">📞 09:14</span>
+        <div><strong>Daughter called:</strong> "Dad seems more confused than usual." — <em>within service hours</em></div>
+      </div>
+
       <div class="cl-steps">
         <div class="nfh-step done" data-cl-step="1">
-          <h5>1. In-scope check</h5>
-          <p>Maria: 5 quick questions · AMT 22/30 (↓ from 26 baseline) · O₂ 94% · pain 2/10 → flags "further clinical assessment needed"</p>
+          <h5>① Maria checked it herself</h5>
+          <p>5 quick questions · confusion up from baseline · <strong>she did NOT diagnose</strong> — she judged "this needs a clinician look"</p>
           <span class="nfh-actor">Maria (RN)</span>
-          <div class="nfh-time">09:20 · within RN scope</div>
+          <div class="nfh-time">09:20 · in scope</div>
         </div>
         <div class="nfh-arrow">→</div>
         <div class="nfh-step active" data-cl-step="2">
-          <h5>2. Hospital partner</h5>
-          <p>Maria → St. Joseph's acute team · discussing assessment options: home visit vs clinic vs ED</p>
+          <h5>② Maria rang the right team</h5>
+          <p>→ St. Joseph's acute team · offered 3 ways to see John: <strong>home visit / clinic / ED</strong></p>
           <span class="nfh-actor">Maria → Hospital partner</span>
-          <div class="nfh-time">09:31 · in progress</div>
+          <div class="nfh-time">09:31 · choosing setting</div>
         </div>
         <div class="nfh-arrow">→</div>
         <div class="nfh-step pending" data-cl-step="3">
-          <h5>3. Outcome → family + circle</h5>
-          <p>Home assessment scheduled Jun 20 · daughter + circle updated</p>
+          <h5>③ Everyone's in the loop</h5>
+          <p>Home assessment booked · <strong>daughter + circle told</strong> what's happening and when</p>
           <span class="nfh-actor">System → CM + family</span>
-          <div class="nfh-time">expected Jun 20</div>
+          <div class="nfh-time">Jun 20 · will confirm back</div>
         </div>
       </div>
+
       <div class="cl-result" data-cl-result>
-        <span>✅</span><div><strong>Loop closed:</strong> assessment booked, daughter + circle notified. CM didn't diagnose — she assessed in scope and coordinated the right clinical team.</div>
+        <span>✅</span><div><strong>Handled:</strong> John seen at home Jun 20 · daughter + circle notified. Maria flagged, routed, and followed up — without overstepping her scope.</div>
       </div>
-      <div class="cl-disclaimer">Clinical assessment and care pathways depend on patient needs, available services and clinical judgment. Maria acts within RN scope — she does not diagnose or replace the clinical team.</div>
-      <button class="primary-button compact-button cl-advance" data-cl-advance="${nm}">Advance clinical loop →</button>
+
+      <div class="cl-disclaimer">Care pathways depend on the patient's needs, available services and clinical judgment. Maria acts within RN scope — she does not diagnose, and does not replace his doctor or the clinical team.</div>
+
+      <button class="primary-button compact-button cl-advance" data-cl-advance="${nm}">▶ Advance: Maria confirmed the hospital will see him →</button>
     </div>
   `;
 }
+
 
 function renderQrHub(patientId) {
   const p = patients.find(x => x.id === patientId) || patients[0];
@@ -7551,7 +7560,7 @@ function generateQRGrid(seed, size = 7) {
     var panel = document.createElement('div');
     panel.id = 'inlineVoicePanel';
     panel.style.cssText = 'margin-top:1rem;padding:1rem;background:var(--soft);border:2px solid var(--brand);border-radius:10px';
-    panel.innerHTML = '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem"><span style="font-size:1.2rem">🎙</span><div style="flex:1"><strong style="font-size:.85rem">Voice Visit — ' + pName + '</strong><br><small style="color:var(--muted)">Speak naturally. System extracts in real-time. You just confirm.</small></div><button id="ivToggle" class="primary-button compact-button" style="white-space:nowrap">🎙 Start</button></div><div id="ivStatus" style="font-size:.75rem;padding:.25rem .6rem;border-radius:999px;background:var(--soft);display:inline-block;margin-bottom:.5rem">Ready — click Start when you call the patient</div><div style="display:grid;gap:.35rem;margin:.5rem 0"><div style="padding:.4rem .6rem;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:.8rem"><strong>Extracted:</strong> Dr. Chen (PCP) — confirmed</div><div style="padding:.4rem .6rem;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:.8rem"><strong>Extracted:</strong> Dr. Patel (Onc) — confirmed</div><div style="padding:.4rem .6rem;background:#fff;border:1px dashed var(--amber);border-radius:6px;font-size:.8rem"><strong style="color:var(--amber)">Needs confirm:</strong> Hospice team — "maybe" mentioned</div></div><div style="display:flex;gap:.5rem;margin-top:.6rem"><button id="ivConfirm" class="primary-button compact-button" style="background:var(--green)">✓ Confirm all 3</button><button id="ivDiscard" class="ghost-button compact-button">Discard</button></div>';
+    panel.innerHTML = '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem"><span style="font-size:1.2rem">🎙</span><div style="flex:1"><strong style="font-size:.85rem">Voice Visit — ' + pName + '</strong><br><small style="color:var(--muted)">Speak naturally. System extracts in real-time. You confirm or edit.</small></div><button id="ivToggle" class="primary-button compact-button" style="white-space:nowrap">🎙 Start</button></div><div id="ivStatus" style="font-size:.75rem;padding:.25rem .6rem;border-radius:999px;background:var(--soft);display:inline-block;margin-bottom:.5rem">Ready — click Start when you call the patient</div><div id="ivExtracts" style="display:grid;gap:.35rem;margin:.5rem 0"><div class="iv-extract" contenteditable="true" data-iv-edit style="padding:.4rem .6rem;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:.8rem;outline:none"><strong>Extracted:</strong> Dr. Chen (PCP) — confirmed</div><div class="iv-extract" contenteditable="true" data-iv-edit style="padding:.4rem .6rem;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:.8rem;outline:none"><strong>Extracted:</strong> Dr. Patel (Onc) — confirmed</div><div class="iv-extract uncertain" contenteditable="true" data-iv-edit style="padding:.4rem .6rem;background:#fff;border:1px dashed var(--amber);border-radius:6px;font-size:.8rem;outline:none"><strong style="color:var(--amber)">Needs confirm:</strong> Hospice team — "maybe" mentioned</div></div><div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;align-items:center"><button id="ivEdit" class="ghost-button compact-button" style="background:var(--amber);color:#fff">✎ Edit extraction</button><button id="ivSave" class="primary-button compact-button hidden" style="background:var(--green)">💾 Save changes</button><button id="ivConfirm" class="primary-button compact-button" style="background:var(--green)">✓ Confirm all 3</button><button id="ivDiscard" class="ghost-button compact-button">Discard</button></div>';
     host.appendChild(panel);
     btn.textContent = '✕ Close voice';
     btn.classList.remove('primary-button');
@@ -7585,6 +7594,32 @@ function generateQRGrid(seed, size = 7) {
       btn.classList.add('primary-button');
       btn.classList.remove('ghost-button');
       showToast('Extraction discarded. No changes.');
+    });
+    // Edit / Save buttons for Voice Visit
+    var ivEdit = panel.querySelector('#ivEdit');
+    var ivSave = panel.querySelector('#ivSave');
+    ivEdit.addEventListener('click', function() {
+      var editing = panel.classList.toggle('iv-editing');
+      panel.querySelectorAll('[data-iv-edit]').forEach(function(x){
+        if (editing) { x.style.boxShadow='inset 0 0 0 1px var(--amber)'; x.style.background='#fffbeb'; }
+        else { x.style.boxShadow=''; x.style.background = x.classList.contains('uncertain') ? '#fff' : '#fff'; }
+      });
+      ivEdit.textContent = editing ? '✓ Done editing' : '✎ Edit extraction';
+      ivEdit.style.background = editing ? 'var(--green)' : 'var(--amber)';
+      ivSave.classList.toggle('hidden', !editing);
+      if (editing) showToast('✎ Edit mode · click any line to correct the AI extract');
+    });
+    ivSave.addEventListener('click', function() {
+      var n = panel.querySelectorAll('[data-iv-edit]').length;
+      panel.querySelectorAll('[data-iv-edit]').forEach(function(x){ x.style.boxShadow='inset 0 0 0 1px var(--green)'; x.style.background='var(--green-bg)'; });
+      ivSave.classList.add('hidden');
+      ivEdit.disabled = true; ivEdit.textContent='✓ Edited'; ivEdit.style.background='var(--muted)';
+      panel.classList.remove('iv-editing');
+      var badge=document.createElement('div');
+      badge.style.cssText='margin-top:.5rem;padding:.4rem .6rem;background:var(--green-bg);border:1px solid var(--green);border-radius:6px;font-size:.78rem;color:var(--green);font-weight:600';
+      badge.textContent='✅ ' + n + ' extract(s) saved with manual edits · timestamp ' + new Date().toLocaleTimeString() + ' · PHIPA audit entry';
+      panel.querySelector('#ivExtracts').after(badge);
+      showToast('💾 Voice Visit extract saved · ' + n + ' fields edited · PHIPA logged');
     });
   });
 
